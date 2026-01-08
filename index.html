@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>MyFIKPsi - Intelligent Research Hub</title>
+    
+    <!-- React Core -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libraries -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- SECURITY: DOMPurify -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        ios: {
+                            bg: '#F2F2F7', surface: 'rgba(255, 255, 255, 0.85)', blue: '#007AFF',
+                            green: '#34C759', indigo: '#5856D6', orange: '#FF9500', red: '#FF3B30',
+                            gray: '#8E8E93', text: '#1C1C1E',
+                        },
+                    },
+                    animation: { 'blob': 'blob 20s infinite', 'fade-in': 'fadeIn 0.5s ease-out', 'pulse-slow': 'pulse 3s infinite' },
+                    keyframes: {
+                        blob: { "0%": { transform: "scale(1)" }, "33%": { transform: "scale(1.1)" }, "66%": { transform: "scale(0.9)" }, "100%": { transform: "scale(1)" } },
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #F2F2F7; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        .safe-pb { padding-bottom: env(safe-area-inset-bottom); }
+        .safe-pt { padding-top: env(safe-area-inset-top); }
+        
+        /* Modern Input Styling */
+        .input-modern { 
+            width: 100%; padding: 0.75rem 1rem; border-radius: 1rem; 
+            background-color: rgba(255, 255, 255, 0.7); 
+            border: 1px solid rgba(255,255,255, 0.5); 
+            outline: none; color: #1e1b4b; font-weight: 500; 
+            font-size: 16px; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .input-modern:focus { 
+            background-color: white; 
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15); /* Sky shadow */
+            border-color: #0ea5e9; 
+            transform: translateY(-1px);
+        }
+        
+        /* Glassmorphism Refined */
+        .glass { 
+            background: rgba(255, 255, 255, 0.65); 
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05); 
+        }
+        
+        .touch-scroll { -webkit-overflow-scrolling: touch; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(14, 165, 233, 0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="antialiased text-slate-800">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback, memo } = React;
+
+        // --- ICONS ---
+        const Icon = ({ path, className = "w-5 h-5", size }) => <svg className={className} width={size} height={size} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d={path} /></svg>;
+        const PATHS = {
+            Home: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+            Sparkles: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z",
+            Lock: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z",
+            Unlock: "M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z",
+            Trash: "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16",
+            Plus: "M12 6v6m0 0v6m0-6h6m-6 0H6",
+            Save: "M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4",
+            Upload: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12",
+            Download: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4", 
+            Search: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
+            Menu: "M4 6h16M4 12h16M4 18h16",
+            Check: "M5 13l4 4L19 7",
+            Users: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
+            Calendar: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+            AcademicCap: "M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z",
+            Megaphone: "M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z",
+            Chart: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+            Cog: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
+            Database: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4",
+            Send: "M12 19l9 2-9-18-9 18 9-2zm0 0v-8",
+            X: "M6 18L18 6M6 6l12 12",
+            Cloud: "M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z",
+            Refresh: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
+            Warn: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
+            Emoji: "M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+            Mic: "M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z",
+            Speaker: "M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z",
+            Camera: "M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z",
+            MapPin: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+            Mail: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
+            ChatAlt: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+            Logout: "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1",
+            Link: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14",
+            ClipboardCheck: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01",
+            Flag: "M3 21v-8a2 2 0 01-2-2V5a2 2 0 012-2h4l2 2h4a2 2 0 01-2 2h-4l-2-2H3z",
+            Briefcase: "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
+            Document: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+            Book: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+            FileText: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+            Archive: "M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4",
+            Award: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z",
+            Calculator: "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+        };
+
+        // --- SECURITY: PASSWORD OBFUSCATION ---
+        const AUTH_TOKEN = "dGFnYXJpeWVuaW5vdG5h"; // tagariyeninotna
+        
+        // --- GAMBAR PERMANEN ---
+        const DEFAULT_LOGO = "https://drive.google.com/thumbnail?id=1Tgb9hkf2E27XR3Vx9xTsHWz9f-W99l_2&sz=s500"; 
+        const DEFAULT_AVATAR = "https://drive.google.com/thumbnail?id=1APGChIC8n3eO997-6CKv7VPuuCWY7IMn&sz=s500"; 
+
+        const convertGDriveLink = (url) => {
+            if (!url) return "";
+            try {
+                const idMatch = url.match(/[-\w]{25,}/);
+                if (idMatch) return `https://drive.google.com/thumbnail?id=${idMatch[0]}&sz=s1000`;
+                return url;
+            } catch (e) { return url; }
+        };
+
+        const useStickyState = (defaultValue, key) => {
+            const [value, setValue] = useState(() => {
+                try {
+                    const stickyValue = window.localStorage.getItem(key);
+                    return stickyValue !== null ? JSON.parse(stickyValue) : defaultValue;
+                } catch (error) { return defaultValue; }
+            });
+            useEffect(() => { window.localStorage.setItem(key, JSON.stringify(value)); }, [key, value]);
+            return [value, setValue];
+        };
+
+        // --- INITIAL DATA SCHEMA ---
+        const INITIAL_DB = {
+            // DATA PENGGUNA DUMMY
+            'Data Mahasiswa': [{ id: 1, Nama: "Mahasiswa Demo", NPM: "220101", Status: "Aktif", Password: "mhs" }],
+            'Data Tendik': [{ id: 1, Nama: "Staf Akademik", NITK: "999001", Role: "Admin", Password: "admin" }],
+            'Data Dosen': [{ id: 1, Nama: "Prof. Andi", NIDN: "12345", Keahlian: "Klinis", S1: "UGM", S2: "UI", S3: "UNPAD", Penelitian: "Cyberpsychology", Password: "12345", NoHP: "628123456789" }],
+            
+            // DATA APLIKASI
+            'Jadwal Kuliah': [{ id: 1, Nama_Dosen: "Prof. Andi", Mata_Kuliah: "Psikologi Klinis", Hari: "Senin", Jam: "08:00", Ruang: "B201", Status: "Hadir" }],
+            'Progres Bimbingan': [{ id: 1, Mahasiswa: "Rina Aulia", Dosen: "Prof. Andi", Topik: "Kecemasan Sosial", Progres: "75", Status_Revisi: "BAB 4 Revisi", Pertemuan_Terakhir: "2024-10-25" }],
+            'Database Skripsi': [{ id: 1, title: "Analisis Kesehatan Mental", student: "Budi", npm:"123", year: "2023", status:"Lulus" }],
+            'Kegiatan Mahasiswa': [{ id: 1, Nama_Kegiatan: "Seminar AI", Tanggal: new Date().toISOString().split('T')[0], Waktu: "13:00", Lokasi: "Zoom", Penyelenggara: "FIKPsi" }],
+            'Jadwal Skripsi': [{ id: 1, Mahasiswa: "Rina Aulia", Judul: "Dampak Sosmed", Penguji: "Dr. Maya", Pembimbing: "Prof. Andi", Tanggal: new Date().toISOString().split('T')[0], Jam: "10:00", Ruang: "R. Sidang" }],
+            'Pusat Informasi': [{ id: 1, Judul: "Panduan Skripsi", Kategori: "Akademik", Isi: "File panduan dapat diakses di TU.", Tanggal: new Date().toISOString().split('T')[0] }],
+            'Layanan Surat': [
+                { id: 1, nama: 'Keterangan Aktif Kuliah', url: 'https://forms.google.com/', kategori: 'Mahasiswa' },
+                { id: 2, nama: 'Izin Tugas Mata Kuliah', url: 'https://forms.google.com/', kategori: 'Mahasiswa' }
+            ],
+            // DATA BARU: Mata Kuliah & Akademik (Updated with Semester)
+            'Mata Kuliah': [
+                { id: 1, kode: 'PSI101', nama: 'Psikologi Umum', sks: 3, semester: 1 },
+                { id: 2, kode: 'PSI102', nama: 'Statistika Dasar', sks: 3, semester: 2 },
+                { id: 3, kode: 'PSI201', nama: 'Psikologi Perkembangan', sks: 3, semester: 3 },
+                { id: 4, kode: 'PSI205', nama: 'Psikodiagnostika', sks: 4, semester: 4 },
+                { id: 5, kode: 'PSI301', nama: 'Psikologi Klinis', sks: 3, semester: 5 },
+                { id: 6, kode: 'PSI305', nama: 'Metodologi Penelitian', sks: 3, semester: 6 }
+            ],
+            'Akademik Mahasiswa': [], 
+            'Konfigurasi': [{ id: 1, app_name: 'MyFIKPsi', logo_url: DEFAULT_LOGO, avatar_url: DEFAULT_AVATAR, ta_url: 'https://google.com' }],
+            
+            // PROGRAM PBL & PKM & MoU & SK & Surat & Akreditasi
+            'Data PBL 1': [],
+            'Data PBL 2': [],
+            'Data PKM Institusi': [],
+            'Arsip MoU': [],
+            'Data SK Dekan': [],
+            'Arsip Surat': [],
+            'Arsip Akreditasi': [], 
+            'Register Nomor Surat': [], // Baru: Tabel Register Nomor
+            'Program Links': [
+                { id: 1, program: 'PBL 1', url: '#', report_url: '#', guide_url: '#', material_url: '#' },
+                { id: 2, program: 'PBL 2', url: '#', report_url: '#', guide_url: '#', material_url: '#' },
+                { id: 3, program: 'PKM Institusi', url: '#', report_url: '#', guide_url: '#', material_url: '#' },
+                { id: 4, program: 'Peminatan', url: '#', report_url: '#', guide_url: '#', material_url: '#' }
+            ]
+        };
+
+        const TABLE_CONFIG = {
+            'Jadwal Kuliah': { columns: [{key:'Nama_Dosen',label:'Dosen'},{key:'Mata_Kuliah',label:'Matkul'},{key:'Hari',label:'Hari'},{key:'Jam',label:'Jam'},{key:'Ruang',label:'Ruang'},{key:'Status',label:'Status'}], form: [{key:'Nama_Dosen',label:'Nama Dosen'},{key:'Mata_Kuliah',label:'Mata Kuliah'},{key:'Hari',label:'Hari',type:'select',options:['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'].map(d=>({value:d,label:d}))},{key:'Jam',label:'Jam'},{key:'Ruang',label:'Ruang'},{key:'Status',label:'Status',type:'select',options:[{value:'Hadir',label:'Hadir'},{value:'Tidak Ada',label:'Tidak Ada'}]}] },
+            'Data Dosen': { columns: [{key:'Nama',label:'Nama'},{key:'NIDN',label:'NIDN'},{key:'Keahlian',label:'Bidang'}], form: [{key:'Nama',label:'Nama Lengkap'},{key:'NIDN',label:'NIDN'},{key:'Keahlian',label:'Bidang Keahlian'},{key:'Penelitian',label:'Judul Penelitian'}, {key:'Password', label:'Password Login'}, {key:'NoHP', label:'No HP (Whatsapp)'}] },
+            'Data Mahasiswa': { columns: [{key:'Nama',label:'Nama'},{key:'NPM',label:'NPM'},{key:'Status',label:'Status'}], form: [{key:'Nama',label:'Nama Lengkap'},{key:'NPM',label:'NPM'},{key:'Status',label:'Status'}, {key:'Password', label:'Password Login'}, {key:'NoHP', label:'No HP (Whatsapp)'}] },
+            'Data Tendik': { columns: [{key:'Nama',label:'Nama'},{key:'NITK',label:'NITK'}], form: [{key:'Nama',label:'Nama Lengkap'},{key:'NITK',label:'NITK'}, {key:'Password', label:'Password Login'}] },
+            'Kegiatan Mahasiswa': { columns: [{key:'Nama_Kegiatan',label:'Kegiatan'},{key:'Tanggal',label:'Tanggal'},{key:'Lokasi',label:'Tempat'}], form: [{key:'Nama_Kegiatan',label:'Nama Acara'},{key:'Tanggal',label:'Tanggal',type:'date'},{key:'Waktu',label:'Waktu'},{key:'Lokasi',label:'Lokasi'}] },
+            'Database Skripsi': { columns: [{key:'title',label:'Judul'},{key:'student',label:'Mahasiswa'},{key:'status',label:'Status'}], form: [{key:'title',label:'Judul Skripsi'},{key:'student',label:'Nama Mahasiswa'},{key:'year',label:'Tahun'},{key:'status',label:'Status'}] },
+            'Pusat Informasi': { columns: [{key:'Judul',label:'Judul'},{key:'Kategori',label:'Kategori'},{key:'Tanggal',label:'Tanggal'}], form: [{key:'Judul',label:'Judul'},{key:'Isi',label:'Isi Informasi'},{key:'Kategori',label:'Kategori'},{key:'Tanggal',label:'Tanggal',type:'date'}] },
+            'Layanan Surat': { columns: [{key:'nama',label:'Nama Surat'},{key:'url',label:'Link GForm'},{key:'kategori',label:'Kategori'}], form: [{key:'nama',label:'Nama Tombol/Surat'},{key:'url',label:'URL Google Form'},{key:'kategori',label:'Kategori'}] },
+            'Mata Kuliah': { columns: [{key:'kode',label:'Kode'},{key:'nama',label:'Nama Matkul'},{key:'sks',label:'SKS'},{key:'semester',label:'Smt'}], form: [{key:'kode',label:'Kode MK'},{key:'nama',label:'Nama Mata Kuliah'},{key:'sks',label:'SKS', type:'number'},{key:'semester',label:'Semester', type:'number'}] },
+            'Akademik Mahasiswa': { columns: [{key:'email',label:'Email Mhs'},{key:'pembimbing',label:'Pembimbing'},{key:'status',label:'Status'}], form: [{key:'email',label:'Email Mahasiswa'},{key:'pembimbing',label:'Nama Dosen PA'},{key:'status',label:'Status (Aktif/Cuti/Drop Out)'}] },
+            'Konfigurasi': { columns: [{key:'app_name',label:'Nama Aplikasi'},{key:'logo_url',label:'URL Logo'},{key:'avatar_url',label:'URL Avatar AI'}, {key:'ta_url', label:'Link Sistem TA'}], form: [{key:'app_name',label:'Nama Aplikasi'},{key:'logo_url',label:'Link Gambar Logo (URL)'},{key:'avatar_url',label:'Link Gambar Avatar (URL)'}, {key:'ta_url', label:'Link Sistem Informasi TA (URL)'}] },
+            
+            // NEW TABLES UPDATED
+            'Data PBL 1': { 
+                columns: [
+                    {key:'Lokasi', label:'Lokasi PBL'},
+                    {key:'Dosen', label:'Dosen Pembimbing Fakultas'},
+                    {key:'Tahun_Akademik', label:'Tahun Akademik'},
+                    {key:'Link_Laporan', label:'Laporan', render: (val) => val ? <a href={val} target="_blank" className="text-blue-500 hover:underline flex items-center gap-1 font-bold bg-blue-50 px-3 py-1 rounded-lg"><Icon path={PATHS.Download} size={16}/> Unduh</a> : '-'}
+                ], 
+                form: [
+                    {key:'Mahasiswa', label:'Nama Mahasiswa'},
+                    {key:'Lokasi', label:'Lokasi PBL'},
+                    {key:'Dosen', label:'Nama Dosen Pembimbing Fakultas'},
+                    {key:'Tahun_Akademik', label:'Tahun Akademik (Contoh: 2023/2024)'},
+                    {key:'Link_Laporan', label:'Link GDrive Laporan (URL)'}
+                ] 
+            },
+            'Data PBL 2': { 
+                columns: [
+                    {key:'Lokasi', label:'Lokasi PBL'},
+                    {key:'Dosen', label:'Dosen Pembimbing Fakultas'},
+                    {key:'Tahun_Akademik', label:'Tahun Akademik'},
+                    {key:'Link_Laporan', label:'Laporan', render: (val) => val ? <a href={val} target="_blank" className="text-blue-500 hover:underline flex items-center gap-1 font-bold bg-blue-50 px-3 py-1 rounded-lg"><Icon path={PATHS.Download} size={16}/> Unduh</a> : '-'}
+                ], 
+                form: [
+                    {key:'Mahasiswa', label:'Nama Mahasiswa'},
+                    {key:'Lokasi', label:'Lokasi PBL'},
+                    {key:'Dosen', label:'Nama Dosen Pembimbing Fakultas'},
+                    {key:'Tahun_Akademik', label:'Tahun Akademik (Contoh: 2023/2024)'},
+                    {key:'Link_Laporan', label:'Link GDrive Laporan (URL)'}
+                ] 
+            },
+            'Data PKM Institusi': { 
+                columns: [
+                    {key:'Lokasi', label:'Lokasi PKM Institusi'},
+                    {key:'Mahasiswa', label:'Nama Mahasiswa'},
+                    {key:'Dosen', label:'Dosen Pembimbing Fakultas'},
+                    {key:'Tahun_Akademik', label:'Tahun Akademik'},
+                    {key:'Link_Laporan', label:'Laporan', render: (val) => val ? <a href={val} target="_blank" className="text-blue-500 hover:underline flex items-center gap-1 font-bold bg-blue-50 px-3 py-1 rounded-lg"><Icon path={PATHS.Download} size={16}/> Unduh</a> : '-'}
+                ], 
+                form: [
+                    {key:'Lokasi', label:'Lokasi PKM Institusi'},
+                    {key:'Mahasiswa', label:'Nama Mahasiswa'},
+                    {key:'Dosen', label:'Nama Dosen Pembimbing Fakultas'},
+                    {key:'Tahun_Akademik', label:'Tahun Akademik (Contoh: 2023/2024)'},
+                    {key:'Link_Laporan', label:'Link GDrive Laporan (URL)'}
+                ] 
+            },
+            'Arsip MoU': {
+                columns: [
+                    {key:'Nama_Instansi', label:'Nama Instansi'},
+                    {key:'Lingkup', label:'Lingkup MOU/MOA'},
+                    {key:'Wilayah', label:'Wilayah Instansi'},
+                    {key:'Narahubung', label:'Nama Narahubung'},
+                    {key:'No_HP', label:'No Narahubung'},
+                    {key:'Tgl_Mulai', label:'Tanggal Mulai'},
+                    {key:'Tgl_Akhir', label:'Tanggal Berakhir'},
+                    {key:'Link_Dokumen', label:'Dokumen', render: (val) => val ? <a href={val} target="_blank" className="text-purple-500 hover:underline flex items-center gap-1 font-bold bg-purple-50 px-3 py-1 rounded-lg"><Icon path={PATHS.Document} size={16}/> Unduh</a> : '-'}
+                ],
+                form: [
+                    {key:'Nama_Instansi', label:'Nama Instansi'},
+                    {key:'Lingkup', label:'Lingkup MOU/MOA'},
+                    {key:'Wilayah', label:'Wilayah Instansi'},
+                    {key:'Narahubung', label:'Nama Narahubung'},
+                    {key:'No_HP', label:'No Narahubung (HP)'},
+                    {key:'Tgl_Mulai', label:'Tanggal Mulai', type: 'date'},
+                    {key:'Tgl_Akhir', label:'Tanggal Berakhir', type: 'date'},
+                    {key:'Link_Dokumen', label:'Link Dokumen (URL)'}
+                ]
+            },
+            'Data SK Dekan': {
+                columns: [
+                    {key:'Tahun_Akademik', label:'Tahun Akademik'},
+                    {key:'Nomor_SK', label:'Nomor SK'},
+                    {key:'Keterangan', label:'Keterangan'},
+                    {key:'Link_File', label:'Unduh', render: (val) => val ? <a href={val} target="_blank" className="text-blue-500 hover:underline flex items-center gap-1 font-bold bg-blue-50 px-3 py-1 rounded-lg"><Icon path={PATHS.Download} size={16}/> SK</a> : '-'}
+                ],
+                form: [
+                    {key:'Tahun_Akademik', label:'Tahun Akademik (Contoh: 2023/2024)'},
+                    {key:'Nomor_SK', label:'Nomor SK'},
+                    {key:'Keterangan', label:'Keterangan'},
+                    {key:'Link_File', label:'Link File SK (URL)'}
+                ]
+            },
+            'Arsip Surat': {
+                columns: [
+                    {key:'No_Surat', label:'No Surat'},
+                    {key:'Jenis', label:'Jenis', render: (val) => <span className={`px-2 py-1 rounded text-xs font-bold ${val==='Masuk'?'bg-green-100 text-green-700':'bg-orange-100 text-orange-700'}`}>{val}</span>},
+                    {key:'Perihal', label:'Perihal'},
+                    {key:'Tanggal', label:'Tanggal'},
+                    {key:'Tujuan', label:'Tujuan/Pengirim'},
+                    {key:'Link_File', label:'File', render: (val) => val ? <a href={val} target="_blank" className="text-gray-500 hover:text-gray-800"><Icon path={PATHS.Document}/></a> : '-'}
+                ],
+                form: [
+                    {key:'No_Surat', label:'Nomor Surat'},
+                    {key:'Jenis', label:'Jenis Surat', type:'select', options:[{value:'Masuk',label:'Surat Masuk'}, {value:'Keluar',label:'Surat Keluar'}]},
+                    {key:'Perihal', label:'Perihal'},
+                    {key:'Tanggal', label:'Tanggal', type:'date'},
+                    {key:'Tujuan', label:'Tujuan / Pengirim'},
+                    {key:'Link_File', label:'Link File Surat (URL)'}
+                ]
+            },
+            'Arsip Akreditasi': {
+                columns: [
+                    {key:'Nama_Arsip', label:'Nama Arsip'},
+                    {key:'Tahun', label:'Tahun'},
+                    {key:'Link_File', label:'Unduh', render: (val) => val ? <a href={val} target="_blank" className="text-blue-500 hover:underline flex items-center gap-1 font-bold bg-blue-50 px-3 py-1 rounded-lg"><Icon path={PATHS.Download} size={16}/> Unduh</a> : '-'}
+                ],
+                form: [
+                    {key:'Nama_Arsip', label:'Nama Arsip Akreditasi'},
+                    {key:'Tahun', label:'Tahun', type:'number'},
+                    {key:'Link_File', label:'Link File Akreditasi (URL)'}
+                ]
+            },
+            // REGISTER NOMOR SURAT (Internal use mostly)
+            'Register Nomor Surat': {
+                columns: [
+                    {key:'nomor_lengkap', label:'Nomor Surat', render: (val) => <span className="font-mono font-bold text-indigo-700">{val}</span>},
+                    {key:'tanggal', label:'Tanggal'},
+                    {key:'tujuan', label:'Tujuan'},
+                    {key:'perihal', label:'Perihal'}
+                ],
+                form: [] // Controlled by specialized component
+            },
+            'Program Links': { 
+                columns: [
+                    {key:'program',label:'Nama Program'},
+                    {key:'url',label:'Link Pendaftaran'},
+                    {key:'report_url',label:'Link Upload Laporan'},
+                    {key:'guide_url',label:'Link Panduan'},
+                    {key:'material_url',label:'Link Materi'}
+                ], 
+                form: [
+                    {key:'program',label:'Nama Program (PBL/PKM/Peminatan)'},
+                    {key:'url',label:'Link Google Form Pendaftaran'},
+                    {key:'report_url',label:'Link Google Form Upload Laporan'},
+                    {key:'guide_url',label:'Link Download Panduan'},
+                    {key:'material_url',label:'Link Download Materi Pembekalan'}
+                ] 
+            }
+        };
+
+        const useDatabase = (initialData, scriptUrl) => {
+            const [localData, setLocalData] = useStickyState(initialData, 'fikpsi_db_v58_generator_surat'); // RESET VERSION
+            const [isOnline, setIsOnline] = useState(false);
+            const [isLoading, setIsLoading] = useState(false);
+
+            useEffect(() => {
+                if (scriptUrl && scriptUrl.startsWith('https://script.google.com')) {
+                    setIsOnline(true);
+                    syncData(scriptUrl);
+                } else {
+                    setIsOnline(false);
+                }
+            }, [scriptUrl]);
+
+            const syncData = async (url) => {
+                setIsLoading(true);
+                try {
+                    const res = await fetch(`${url}?action=read`);
+                    const cloudData = await res.json();
+                    if (cloudData && !cloudData.error) {
+                        setLocalData(prev => ({...prev, ...cloudData}));
+                    }
+                } catch (e) { console.error("Sync fail", e); }
+                setIsLoading(false);
+            };
+
+            const crud = {
+                add: async (key, item) => {
+                    const newItem = { id: Date.now(), ...item };
+                    setLocalData(p => ({...p, [key]: [...(p[key]||[]), newItem]}));
+                    if(isOnline) await fetch(scriptUrl, { method: 'POST', body: JSON.stringify({ action: 'add', sheet: key, data: newItem }) });
+                },
+                del: async (key, id) => {
+                    setLocalData(p => ({...p, [key]: p[key].filter(x => x.id !== id)}));
+                    if(isOnline) await fetch(scriptUrl, { method: 'POST', body: JSON.stringify({ action: 'del', sheet: key, id: id }) });
+                },
+                update: async (key, id, newData) => {
+                    setLocalData(p => ({...p, [key]: p[key].map(x => x.id === id ? { ...x, ...newData } : x)}));
+                },
+                clear: async (key) => {
+                    if(confirm("Hapus semua?")) {
+                        setLocalData(p => ({...p, [key]: []}));
+                        if(isOnline) await fetch(scriptUrl, { method: 'POST', body: JSON.stringify({ action: 'clear', sheet: key }) });
+                    }
+                },
+                import: async (key, data) => {
+                    const cleanData = data.map(x=>({id:Date.now()+Math.random(),...x}));
+                    setLocalData(p => ({...p, [key]: [...(p[key]||[]), ...cleanData]}));
+                    if(isOnline) {
+                        for(let item of cleanData) await fetch(scriptUrl, { method: 'POST', body: JSON.stringify({ action: 'add', sheet: key, data: item }) });
+                    }
+                },
+                refresh: () => scriptUrl && syncData(scriptUrl)
+            };
+            return { db: localData, ...crud, isOnline, isLoading };
+        };
+
+        // ... (callAI, Clock, GenericTable, ChatView remains same as previous selection) ...
+        const callAI = async (prompt, context, config, imageBase64 = null) => {
+            const { apiKey, groqKey, provider, huggingFaceKey, cohereKey } = config;
+
+            // Optimasi Konteks
+            const optimizeContext = (data) => {
+                const limited = {};
+                Object.keys(data).forEach(key => {
+                    if (Array.isArray(data[key])) {
+                        limited[key] = data[key].slice(-10); // Ambil 10 data terbaru
+                    } else {
+                        limited[key] = data[key];
+                    }
+                });
+                return JSON.stringify(limited).substring(0, 15000); 
+            };
+            const contextString = optimizeContext(context);
+            
+            // --- FUNGSI PROVIDER TERPISAH (Untuk Auto Switch) ---
+
+            const tryGemini = async (modelName = 'gemini-1.5-flash') => {
+                if (!apiKey) throw new Error("API Key Gemini kosong");
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                let bodyContent;
+                if(imageBase64) {
+                      const cleanBase64 = imageBase64.split(',')[1];
+                      bodyContent = { contents: [{ parts: [{ text: `You are Inotna. Answer in Indonesian. Context: ${contextString}. User: ${prompt}` }, { inlineData: { mimeType: "image/jpeg", data: cleanBase64 } }] }] };
+                } else {
+                      bodyContent = { contents: [{ parts: [{ text: `You are Inotna. Answer in Indonesian. Be concise. Context: ${contextString}. User: ${prompt}` }] }] };
+                }
+                const res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(bodyContent) });
+                const data = await res.json();
+                if (data.error) {
+                    if (data.error.message.includes("not found") || data.error.code === 404) {
+                        throw new Error("MODEL_NOT_FOUND");
+                    }
+                    throw new Error(data.error.message);
+                }
+                return data.candidates?.[0]?.content?.parts?.[0]?.text;
+            };
+
+            const tryGroq = async () => {
+                if (!groqKey) throw new Error("API Key Groq kosong");
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${groqKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: "system", content: `You are Inotna. Answer in Indonesian. Context: ${contextString}` },
+                            { role: "user", content: prompt }
+                        ],
+                        model: "llama-3.1-8b-instant" 
+                    })
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error.message);
+                return data.choices?.[0]?.message?.content;
+            };
+
+            const tryCohere = async () => {
+                if (!cohereKey) throw new Error("API Key Cohere kosong");
+                const res = await fetch("https://api.cohere.ai/v1/chat", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${cohereKey}`, "Content-Type": "application/json", "X-Client-Name": "FIKPsi_App" },
+                    body: JSON.stringify({ message: prompt, preamble: `You are Inotna. Answer in Indonesian. Context: ${contextString}` })
+                });
+                const data = await res.json();
+                if (data.message && !data.text) throw new Error(data.message);
+                return data.text;
+            };
+
+            const tryHuggingFace = async () => {
+                if (!huggingFaceKey) throw new Error("API Key HF kosong");
+                const res = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${huggingFaceKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ inputs: `<s>[INST] You are Inotna. Answer in Indonesian. Context: ${contextString}. Question: ${prompt} [/INST]`, parameters: { max_new_tokens: 500 } })
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                return data[0]?.generated_text;
+            };
+
+            let strategies = [];
+            const addStrategy = (name, fn) => strategies.push({ name, fn });
+
+            if (provider === 'gemini') {
+                addStrategy('Gemini Flash', () => tryGemini('gemini-1.5-flash'));
+                addStrategy('Gemini Pro (Fallback)', () => tryGemini('gemini-pro'));
+            } else if (provider === 'groq') {
+                addStrategy('Groq', tryGroq);
+            } else if (provider === 'cohere') {
+                addStrategy('Cohere', tryCohere);
+            } else if (provider === 'huggingface') {
+                addStrategy('HuggingFace', tryHuggingFace);
+            }
+
+            if (provider !== 'gemini' && apiKey) {
+                addStrategy('Backup: Gemini Flash', () => tryGemini('gemini-1.5-flash'));
+                addStrategy('Backup: Gemini Pro', () => tryGemini('gemini-pro'));
+            }
+            if (provider !== 'groq' && groqKey) addStrategy('Backup: Groq', tryGroq);
+            if (provider !== 'cohere' && cohereKey) addStrategy('Backup: Cohere', tryCohere);
+            if (provider !== 'huggingface' && huggingFaceKey) addStrategy('Backup: HF', tryHuggingFace);
+
+            let lastError = "";
+            for (const strategy of strategies) {
+                try {
+                    const result = await strategy.fn();
+                    if (result) return result;
+                } catch (e) {
+                    console.warn(`Gagal: ${strategy.name}`, e.message);
+                    lastError = e.message;
+                    continue;
+                }
+            }
+            return `Maaf, semua koneksi AI gagal. (Terakhir: ${lastError}). Periksa API Key di Pengaturan.`;
+        };
+
+        const Clock = () => {
+            const [t, setT] = useState(new Date());
+            useEffect(() => { const i = setInterval(() => setT(new Date()), 1000); return () => clearInterval(i); }, []);
+            return (
+                <div className="flex flex-col items-end">
+                    <div className="text-xl font-bold text-sky-600 font-mono leading-none">{t.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t.toLocaleDateString('id-ID', {weekday: 'short', day: 'numeric', month: 'short'})}</div>
+                </div>
+            );
+        };
+
+        const GenericTable = ({ title, data, columns, formConfig, onAdd, onDel, onClear, onImp, isLocked }) => {
+            const [isOpen, setIsOpen] = useState(false);
+            const [form, setForm] = useState({});
+            const [search, setSearch] = useState("");
+            const filtered = data.filter(d => Object.values(d).some(v => String(v).toLowerCase().includes(search.toLowerCase())));
+            
+            const handleExcel = (e) => {
+                const f = e.target.files[0]; if(!f) return;
+                const r = new FileReader();
+                r.onload = (evt) => {
+                    const wb = XLSX.read(evt.target.result, {type:'array'});
+                    onImp(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+                };
+                r.readAsArrayBuffer(f);
+            };
+
+            const handleDownloadTemplate = () => {
+                const sampleRow = {};
+                formConfig.forEach(f => { sampleRow[f.key] = ""; });
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet([sampleRow]);
+                XLSX.utils.book_append_sheet(wb, ws, "Template");
+                XLSX.writeFile(wb, `Format_Import_${title.replace(/\s+/g, '_')}.xlsx`);
+            };
+
+            return (
+                <div className="space-y-4 pb-20 animate-fade-in">
+                    <div className="flex flex-col md:flex-row justify-between gap-4">
+                        <h2 className="text-2xl font-bold text-gray-800 tracking-tight">{title}</h2>
+                        <div className="flex flex-wrap gap-2">
+                            {!isLocked && (
+                                <>
+                                    <button onClick={handleDownloadTemplate} className="btn-white text-green-600 shadow-sm border border-green-100 hover:bg-green-50 transition-colors">
+                                        <Icon path={PATHS.Download}/> Unduh Format
+                                    </button>
+                                    <label className="btn-white cursor-pointer hover:bg-gray-50"><Icon path={PATHS.Upload}/> Import <input type="file" hidden onChange={handleExcel} accept=".xlsx, .xls" /></label>
+                                    <button onClick={onClear} className="btn-white text-red-500 hover:bg-red-50"><Icon path={PATHS.Trash}/></button>
+                                    <button onClick={()=>setIsOpen(!isOpen)} className="btn-sky"><Icon path={PATHS.Plus}/> {isOpen?'Tutup':'Tambah'}</button>
+                                </>
+                            )}
+                            <div className="relative"><Icon path={PATHS.Search} className="absolute left-3 top-2.5 text-gray-400"/><input className="input-modern pl-10" placeholder="Cari..." value={search} onChange={e=>setSearch(e.target.value)}/></div>
+                        </div>
+                    </div>
+                    
+                    {isOpen && !isLocked && (
+                        <form onSubmit={(e)=>{e.preventDefault(); onAdd(form); setForm({}); setIsOpen(false);}} className="glass p-6 rounded-2xl grid md:grid-cols-2 gap-4 shadow-lg">
+                            {formConfig.map(f => (
+                                <div key={f.key}>
+                                    <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">{f.label}</label>
+                                    {f.type==='select' ? (
+                                        <select className="input-modern" value={form[f.key]||''} onChange={e=>setForm({...form,[f.key]:e.target.value})}>
+                                            <option value="">Pilih...</option>{f.options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+                                        </select>
+                                    ) : <input className="input-modern" type={f.type||'text'} value={form[f.key]||''} onChange={e=>setForm({...form,[f.key]:e.target.value})} required/>}
+                                </div>
+                            ))}
+                            <button type="submit" className="md:col-span-2 btn-sky mt-2 justify-center py-3">Simpan Data</button>
+                        </form>
+                    )}
+
+                    <div className="glass rounded-2xl overflow-x-auto touch-scroll shadow-md border border-white/50">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-white/50 text-gray-500 text-xs uppercase border-b border-white/20"><tr>{columns.map(c=><th key={c.key} className="px-6 py-4">{c.label}</th>)}{!isLocked && <th className="px-6 py-4 text-center">Aksi</th>}</tr></thead>
+                            <tbody className="divide-y divide-white/20">{filtered.map(row=><tr key={row.id} className="hover:bg-white/40 transition-colors">{columns.map(c=><td key={c.key} className="px-6 py-4">{c.render ? c.render(row[c.key], row) : row[c.key]}</td>)}{!isLocked && <td className="px-6 py-4 text-center"><button onClick={()=>onDel(row.id)} className="text-red-500 hover:text-red-600 transition"><Icon path={PATHS.Trash}/></button></td>}</tr>)}</tbody>
+                        </table>
+                        {filtered.length===0 && <div className="p-10 text-center text-gray-400 font-medium">Data tidak ditemukan</div>}
+                    </div>
+                </div>
+            );
+        };
+
+        const ChatView = ({ context, config }) => {
+            const [msgs, setMsgs] = useState([{role:'system', text:`Halo! Saya Inotna. Ada yang bisa dibantu?`}]);
+            const [txt, setTxt] = useState("");
+            const [loading, setLoading] = useState(false);
+            const [listening, setListening] = useState(false);
+            const [voices, setVoices] = useState([]); 
+            const endRef = useRef(null);
+            
+            useEffect(() => endRef.current?.scrollIntoView({behavior:'smooth'}), [msgs]);
+
+            useEffect(() => {
+                const loadVoices = () => {
+                    const availableVoices = window.speechSynthesis.getVoices();
+                    setVoices(availableVoices);
+                };
+                
+                loadVoices();
+                if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                    window.speechSynthesis.onvoiceschanged = loadVoices;
+                }
+            }, []);
+
+            // -- VOICE LOGIC --
+            const speak = (text) => {
+                if (!('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel(); 
+                const cleanText = text.replace(/[*_#`]/g, '').replace(/\[.*?\]\(.*?\)/g, '').replace(/https?:\/\/\S+/g, 'link'); 
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'id-ID'; 
+                utterance.rate = 1.0; 
+                const allVoices = window.speechSynthesis.getVoices();
+                const indoVoices = allVoices.filter(v => v.lang === 'id-ID' || v.lang.includes('Indonesia'));
+                const maleVoice = indoVoices.find(v => v.name.includes('Andika') || v.name.toLowerCase().includes('male'));
+                if (maleVoice) { utterance.voice = maleVoice; utterance.pitch = 1.0; } 
+                else if (indoVoices.length > 0) { utterance.voice = indoVoices[0]; utterance.pitch = 0.75; } 
+                else { utterance.pitch = 0.75; }
+                window.speechSynthesis.speak(utterance);
+            };
+
+            const processInteraction = async (inputQuery) => {
+                const userMsg = { role:'user', text: inputQuery };
+                setMsgs(p => [...p, userMsg]); 
+                setLoading(true);
+                const ans = await callAI(inputQuery, context, config, null);
+                setMsgs(p => [...p, {role:'system', text:ans}]); 
+                setLoading(false);
+                speak(ans);
+            };
+
+            const startListening = () => {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    alert("Browser tidak mendukung fitur suara.");
+                    return;
+                }
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'id-ID';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.onstart = () => setListening(true);
+                recognition.onend = () => setListening(false);
+                recognition.onerror = (e) => { console.error(e); setListening(false); };
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    processInteraction(transcript);
+                };
+                recognition.start();
+            };
+
+            const send = (e) => {
+                e.preventDefault(); 
+                if(!txt.trim()) return;
+                const payload = txt;
+                setTxt(""); 
+                processInteraction(payload);
+            };
+
+            return (
+                <div className="h-full flex flex-col glass rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-white/40">
+                    <div className="p-5 bg-white/30 border-b border-white/20 backdrop-blur-md flex items-center gap-4 shrink-0">
+                        <div className="relative">
+                            <img 
+                                src={config.aiAvatar || DEFAULT_AVATAR} 
+                                className="w-12 h-12 rounded-full object-cover border-2 border-white/50 shadow-sm" 
+                                referrerPolicy="no-referrer" 
+                                onError={(e) => {e.target.onerror = null; e.target.src = DEFAULT_AVATAR}}
+                            />
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                        </div>
+                        <div>
+                            <h2 className="font-bold text-gray-800 text-lg">Inotna</h2>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 touch-scroll">
+                        {msgs.map((m,i) => (
+                            <div key={i} className={`flex flex-col ${m.role==='user'?'items-end':'items-start'} animate-fade-in gap-1`}>
+                                <div className={`flex ${m.role==='user'?'justify-end':'justify-start'} items-end gap-2 max-w-[85%] md:max-w-[70%]`}>
+                                    {m.role === 'system' && (
+                                        <button onClick={()=>speak(m.text)} className="w-8 h-8 rounded-full bg-white/50 hover:bg-white flex items-center justify-center text-sky-600 transition shadow-sm mb-2 flex-shrink-0" title="Bacakan Ulang">
+                                            <Icon path={PATHS.Speaker} size={16}/>
+                                        </button>
+                                    )}
+                                    <div className={`p-4 rounded-2xl text-[15px] leading-relaxed shadow-sm backdrop-blur-md overflow-hidden ${
+                                        m.role==='user'
+                                        ? 'bg-gradient-to-br from-cyan-500/80 to-blue-600/80 text-white rounded-br-none border border-white/20'
+                                        : 'bg-white/60 text-gray-800 rounded-bl-none border border-white/40'
+                                    }`}>
+                                        <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(marked.parse(m.text))}}/>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {loading && (
+                            <div className="flex justify-start animate-fade-in">
+                                <div className="bg-white/60 backdrop-blur-md px-4 py-3 rounded-2xl rounded-bl-none shadow-sm border border-white/40 flex gap-2 items-center">
+                                    <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce"></div>
+                                    <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce delay-100"></div>
+                                    <div className="w-2 h-2 bg-sky-500 rounded-full animate-bounce delay-200"></div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={endRef} className="h-4"/>
+                    </div>
+                    
+                    <div className="p-3 md:p-4 bg-white/40 backdrop-blur-md shrink-0 safe-pb border-t border-white/20">
+                        <form onSubmit={send} className="flex gap-2 md:gap-3 relative items-center">
+                             <button type="button" onClick={startListening} className={`p-3 md:p-4 rounded-2xl shadow-lg transition-all border border-white/20 flex-shrink-0 ${listening ? 'bg-red-500 text-white animate-pulse' : 'bg-white/70 text-gray-600 hover:bg-white'}`}>
+                                <Icon path={PATHS.Mic} size={20}/>
+                            </button>
+                            <input 
+                                className="flex-1 bg-white/70 border border-white/50 rounded-2xl px-4 py-3 md:px-5 md:py-4 shadow-sm focus:ring-2 focus:ring-sky-500/30 outline-none text-gray-800 placeholder-gray-500 backdrop-blur-sm input-modern" 
+                                placeholder={listening ? "Mendengarkan..." : "Ketik atau bicara..."} 
+                                value={txt} 
+                                onChange={e=>setTxt(e.target.value)} 
+                            />
+                            <button type="submit" className="bg-gradient-to-r from-cyan-500/90 to-blue-600/90 text-white p-3 md:p-4 rounded-2xl shadow-lg hover:scale-105 active:scale-95 transition-all backdrop-blur-sm border border-white/20 flex-shrink-0">
+                                <Icon path={PATHS.Send} size={20}/>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- NEW VIEW: PROGRAM PBL & PKM ---
+        const ProgramView = ({ title, sheetName, linkKey, db, user, onUpdateDb, onAdd, onDel, onClear, onImp }) => {
+            const [regUrl, setRegUrl] = useState('');
+            const [reportUrl, setReportUrl] = useState(''); 
+            const [guideUrl, setGuideUrl] = useState(''); // NEW: Guide URL
+            const [materialUrl, setMaterialUrl] = useState(''); // NEW: Material URL
+            
+            const linkConfig = db['Program Links']?.find(l => l.program === linkKey);
+            const activeRegUrl = linkConfig?.url || '#';
+            const activeReportUrl = linkConfig?.report_url || '#'; 
+            const activeGuideUrl = linkConfig?.guide_url || '#'; // Active Guide
+            const activeMaterialUrl = linkConfig?.material_url || '#'; // Active Material
+
+            const handleSaveLink = () => {
+                const existing = db['Program Links']?.find(l => l.program === linkKey);
+                const newData = { program: linkKey };
+                if (regUrl) newData.url = regUrl;
+                if (reportUrl) newData.report_url = reportUrl;
+                if (guideUrl) newData.guide_url = guideUrl;
+                if (materialUrl) newData.material_url = materialUrl;
+
+                if(existing) {
+                    onUpdateDb('Program Links', existing.id, newData);
+                } else {
+                    onUpdateDb('Program Links', null, newData);
+                }
+                alert('Link Konfigurasi Tersimpan!');
+                setRegUrl('');
+                setReportUrl('');
+                setGuideUrl('');
+                setMaterialUrl('');
+            };
+
+            return (
+                <div className="max-w-6xl mx-auto space-y-6 pb-24 animate-fade-in">
+                    <div className="glass p-8 rounded-[2rem] shadow-xl">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                                    <Icon path={linkKey.includes('PBL') ? PATHS.ClipboardCheck : PATHS.Flag} size={32}/>
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+                                    <p className="text-sm text-gray-500">Program Akademik & Kemahasiswaan</p>
+                                </div>
+                            </div>
+                            
+                            {user.role === 'mhs' && (
+                                <div className="flex flex-wrap gap-2">
+                                    <a href={activeRegUrl} target="_blank" className="btn-sky px-6 py-3 rounded-xl shadow-lg shadow-blue-500/30 flex items-center gap-2 font-bold animate-pulse-slow">
+                                        <Icon path={PATHS.Send} size={20}/> Daftar
+                                    </a>
+                                    <a href={activeReportUrl} target="_blank" className="bg-green-500 text-white hover:bg-green-600 px-6 py-3 rounded-xl shadow-lg shadow-green-500/30 flex items-center gap-2 font-bold transition">
+                                        <Icon path={PATHS.Upload} size={20}/> Laporan
+                                    </a>
+                                    {/* New Buttons for Students */}
+                                    <a href={activeGuideUrl} target="_blank" className="bg-purple-500 text-white hover:bg-purple-600 px-6 py-3 rounded-xl shadow-lg shadow-purple-500/30 flex items-center gap-2 font-bold transition">
+                                        <Icon path={PATHS.Book} size={20}/> Panduan
+                                    </a>
+                                    <a href={activeMaterialUrl} target="_blank" className="bg-orange-500 text-white hover:bg-orange-600 px-6 py-3 rounded-xl shadow-lg shadow-orange-500/30 flex items-center gap-2 font-bold transition">
+                                        <Icon path={PATHS.Chart} size={20}/> Materi
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Admin Config Section */}
+                        {(user.role === 'tendik' || user.role === 'superadmin') && (
+                            <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                                <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Admin Panel: Setting Link</h3>
+                                <div className="grid md:grid-cols-2 gap-3 mb-2">
+                                    <input 
+                                        className="input-modern bg-white" 
+                                        placeholder={activeRegUrl === '#' ? "Link GForm Pendaftaran..." : activeRegUrl}
+                                        value={regUrl}
+                                        onChange={e => setRegUrl(e.target.value)}
+                                    />
+                                    <input 
+                                        className="input-modern bg-white" 
+                                        placeholder={activeReportUrl === '#' ? "Link GForm Upload Laporan..." : activeReportUrl}
+                                        value={reportUrl}
+                                        onChange={e => setReportUrl(e.target.value)}
+                                    />
+                                    <input 
+                                        className="input-modern bg-white" 
+                                        placeholder={activeGuideUrl === '#' ? "Link Download Panduan..." : activeGuideUrl}
+                                        value={guideUrl}
+                                        onChange={e => setGuideUrl(e.target.value)}
+                                    />
+                                    <input 
+                                        className="input-modern bg-white" 
+                                        placeholder={activeMaterialUrl === '#' ? "Link Download Materi..." : activeMaterialUrl}
+                                        value={materialUrl}
+                                        onChange={e => setMaterialUrl(e.target.value)}
+                                    />
+                                </div>
+                                <button onClick={handleSaveLink} className="btn-sky whitespace-nowrap w-full md:w-auto">Simpan Konfigurasi Link</button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Data Table Area (Visible to Dosen & Admin) */}
+                    {(user.role !== 'mhs' && sheetName) && (
+                        <GenericTable 
+                            title={`Laporan Masuk: ${title}`} 
+                            data={db[sheetName]||[]} 
+                            columns={TABLE_CONFIG[sheetName].columns} 
+                            formConfig={TABLE_CONFIG[sheetName].form} 
+                            onAdd={onAdd} 
+                            onDel={onDel} 
+                            onClear={onClear} 
+                            onImp={onImp} 
+                            isLocked={user.role === 'dosen'} 
+                        />
+                    )}
+                    
+                    {user.role === 'mhs' && (
+                        <div className="text-center text-gray-400 py-10">
+                            <p>Silakan klik tombol di atas untuk mendaftar, mengupload laporan, atau mengunduh panduan.</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- NEW VIEW: LETTER NUMBER GENERATOR ---
+        const LetterGeneratorView = ({ db, onAdd }) => {
+            const [formData, setFormData] = useState({
+                tanggal: new Date().toISOString().split('T')[0],
+                unit: '',
+                jenis: '',
+                tujuan: '',
+                perihal: ''
+            });
+            const [generatedNumber, setGeneratedNumber] = useState('');
+
+            const UNITS = [
+                { label: 'Fakultas', code: 'F' }, // Code hidden from logic if not used in string, assumed static part handles general scope
+                { label: 'Program Studi Ilmu Kesehatan Masyarakat', code: 'IKM' },
+                { label: 'Psikologi', code: 'PSI' },
+                { label: 'Magister Kesehatan Masyarakat', code: 'MKM' }
+            ];
+
+            const TYPES = [
+                { label: 'Surat Keluar Dekan', code: 'A' },
+                { label: 'Surat Keputusan Dekan', code: 'KEP' },
+                { label: 'Surat Keterangan', code: 'KET' },
+                { label: 'Surat Tugas', code: 'TGS' },
+                { label: 'Nota Dinas', code: 'C' },
+                { label: 'Kerjasama', code: 'KER' },
+                { label: 'Perjanjian Kerjasama', code: 'PKSS' },
+                { label: 'Sertifikat', code: 'A' },
+                { label: 'Surat Keluar Prodi', code: 'A' }
+            ];
+
+            const generateNumber = (previewOnly = false) => {
+                if (!formData.jenis || !formData.tanggal) return;
+
+                const year = new Date(formData.tanggal).getFullYear();
+                
+                // Cari nomor urut terakhir di tahun yang sama
+                const existing = db['Register Nomor Surat']?.filter(item => {
+                    const itemYear = new Date(item.tanggal).getFullYear();
+                    return itemYear === year;
+                }) || [];
+
+                let nextNum = 1;
+                if (existing.length > 0) {
+                    const maxNum = Math.max(...existing.map(e => parseInt(e.no_urut) || 0));
+                    nextNum = maxNum + 1;
+                }
+
+                // Format: NO/II.3.AU.15/KODE/TAHUN
+                // Jika previewOnly = true, kita tidak increment (hanya simulasi) tapi karena ini client-side DB,
+                // kita ambil logic yang sama. Untuk simplifikasi, kita tampilkan calon nomornya.
+                
+                const noStr = String(nextNum).padStart(3, '0');
+                const typeCode = TYPES.find(t => t.label === formData.jenis)?.code || 'A';
+                
+                const fullString = `${noStr}/II.3.AU.15/${typeCode}/${typeCode==='KER'||typeCode==='PKSS'||typeCode==='KEP'||typeCode==='KET'||typeCode==='TGS'||typeCode==='C' ? '' : ''}${typeCode}/${year}`.replace('//','/'); 
+                // Correction based on prompt: NO/II.3.AU.15/A/KET/KEP/C/KER/PKS/TAHUN
+                // The prompt says "NO/II.3.AU.15/A/KET/KEP/C/KER/PKS/TAHUN Menyesuaikan". 
+                // Interpretation: NO/II.3.AU.15/[CODE]/[YEAR]
+                
+                const finalString = `${noStr}/II.3.AU.15/${typeCode}/${year}`;
+                
+                setGeneratedNumber(finalString);
+                return { nextNum, finalString };
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const { nextNum, finalString } = generateNumber();
+                
+                if (confirm(`Simpan Nomor Surat: ${finalString}?`)) {
+                    onAdd('Register Nomor Surat', {
+                        no_urut: nextNum,
+                        nomor_lengkap: finalString,
+                        tanggal: formData.tanggal,
+                        unit: formData.unit,
+                        jenis: formData.jenis,
+                        tujuan: formData.tujuan,
+                        perihal: formData.perihal
+                    });
+                    alert("Nomor berhasil dibuat dan disimpan!");
+                    setFormData({...formData, tujuan: '', perihal: ''}); // Reset partial
+                    setGeneratedNumber('');
+                }
+            };
+
+            // Auto preview when inputs change
+            useEffect(() => {
+                if(formData.jenis && formData.tanggal) {
+                    generateNumber(true);
+                }
+            }, [formData.jenis, formData.tanggal, db]);
+
+            return (
+                <div className="max-w-5xl mx-auto space-y-6 pb-24 animate-fade-in">
+                    <div className="glass p-8 rounded-[2rem] shadow-xl">
+                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                            <span className="p-2 bg-indigo-100 text-indigo-600 rounded-lg"><Icon path={PATHS.Calculator} size={24}/></span>
+                            Generator Nomor Surat Keluar
+                        </h2>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="lbl">Tanggal Surat</label>
+                                    <input className="input-modern" type="date" required value={formData.tanggal} onChange={e=>setFormData({...formData, tanggal:e.target.value})}/>
+                                </div>
+                                <div>
+                                    <label className="lbl">Unit / Program Studi</label>
+                                    <select className="input-modern" required value={formData.unit} onChange={e=>setFormData({...formData, unit:e.target.value})}>
+                                        <option value="">Pilih Unit...</option>
+                                        {UNITS.map(u => <option key={u.label} value={u.label}>{u.label}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="lbl">Jenis Surat</label>
+                                    <select className="input-modern" required value={formData.jenis} onChange={e=>setFormData({...formData, jenis:e.target.value})}>
+                                        <option value="">Pilih Jenis...</option>
+                                        {TYPES.map(t => <option key={t.label} value={t.label}>{t.label} (Kode: {t.code})</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="lbl">Tujuan Surat</label>
+                                    <input className="input-modern" placeholder="Kepada Yth..." required value={formData.tujuan} onChange={e=>setFormData({...formData, tujuan:e.target.value})}/>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="lbl">Perihal Surat</label>
+                                    <input className="input-modern" placeholder="Perihal..." required value={formData.perihal} onChange={e=>setFormData({...formData, perihal:e.target.value})}/>
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl mt-4">
+                                <label className="text-xs font-bold text-indigo-400 uppercase">Preview Nomor Surat</label>
+                                <div className="text-2xl md:text-3xl font-mono font-bold text-indigo-700 mt-1 tracking-tight">
+                                    {generatedNumber || "---/II.3.AU.15/---/----"}
+                                </div>
+                            </div>
+
+                            <button type="submit" className="w-full btn-sky py-3 justify-center font-bold text-lg shadow-lg shadow-indigo-500/20">
+                                Buat & Simpan Nomor
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Table Riwayat */}
+                    <div className="glass p-6 rounded-[2rem] shadow-lg">
+                        <h3 className="font-bold text-gray-800 mb-4">Riwayat Nomor Surat Terakhir</h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead className="bg-white/50 text-gray-500 text-xs uppercase border-b border-white/20">
+                                    <tr>
+                                        <th className="px-4 py-3">Nomor Surat</th>
+                                        <th className="px-4 py-3">Tanggal</th>
+                                        <th className="px-4 py-3">Tujuan</th>
+                                        <th className="px-4 py-3">Perihal</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/20">
+                                    {db['Register Nomor Surat']?.slice().reverse().slice(0, 10).map((row, idx) => (
+                                        <tr key={idx} className="hover:bg-white/40">
+                                            <td className="px-4 py-3 font-mono font-bold text-indigo-600">{row.nomor_lengkap}</td>
+                                            <td className="px-4 py-3">{row.tanggal}</td>
+                                            <td className="px-4 py-3">{row.tujuan}</td>
+                                            <td className="px-4 py-3">{row.perihal}</td>
+                                        </tr>
+                                    ))}
+                                    {(!db['Register Nomor Surat'] || db['Register Nomor Surat'].length === 0) && (
+                                        <tr><td colSpan="4" className="text-center py-4 text-gray-400">Belum ada data nomor surat.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const SettingsView = ({ config, setConfig, db }) => {
+            const updateGlobalConfig = (key, value) => {
+                const finalValue = convertGDriveLink(value);
+                setConfig(p => ({...p, [key]: finalValue}));
+            };
+            
+            return (
+                <div className="max-w-2xl mx-auto space-y-6 pb-24 animate-fade-in">
+                    <h2 className="text-2xl font-bold text-gray-800">Pengaturan</h2>
+                    <div className="glass p-8 rounded-[2rem] space-y-6 shadow-xl">
+                        <div className="bg-yellow-50 p-4 rounded-xl text-xs text-yellow-800 border border-yellow-200 leading-relaxed">
+                            <strong>Tips Konsistensi:</strong> Agar nama, logo, link TA, dan foto profil berubah untuk <em>semua pengguna</em>, silakan edit data di menu <strong>Database &gt; Konfigurasi</strong> dengan menggunakan <strong>URL Gambar</strong>. Jangan lupa set izin file Google Drive menjadi "Anyone with the link".
+                        </div>
+
+                        <div><label className="lbl">Nama Aplikasi (Lokal)</label><input className="input-modern" value={config.appName} onChange={e=>setConfig(p=>({...p,appName:e.target.value}))}/></div>
+                        
+                        <div className="border-t border-gray-200/50 pt-6">
+                            <label className="lbl text-indigo-600 mb-3 block">Pilih AI Provider Utama</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                <button onClick={()=>setConfig(p=>({...p, provider: 'gemini'}))} className={`py-3 rounded-xl text-xs font-bold transition shadow-sm ${config.provider==='gemini' ? 'bg-indigo-600 text-white shadow-indigo-500/30' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Google Gemini</button>
+                                <button onClick={()=>setConfig(p=>({...p, provider: 'groq'}))} className={`py-3 rounded-xl text-xs font-bold transition shadow-sm ${config.provider==='groq' ? 'bg-orange-500 text-white shadow-orange-500/30' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Groq</button>
+                                <button onClick={()=>setConfig(p=>({...p, provider: 'huggingface'}))} className={`py-3 rounded-xl text-xs font-bold transition shadow-sm ${config.provider==='huggingface' ? 'bg-yellow-500 text-white shadow-yellow-500/30' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Hugging Face</button>
+                                <button onClick={()=>setConfig(p=>({...p, provider: 'cohere'}))} className={`py-3 rounded-xl text-xs font-bold transition shadow-sm ${config.provider==='cohere' ? 'bg-teal-600 text-white shadow-teal-500/30' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>Cohere</button>
+                            </div>
+                            
+                            {config.provider === 'gemini' && (
+                                <div><label className="lbl">API Key Gemini</label><input className="input-modern" type="password" value={config.apiKey} onChange={e=>setConfig(p=>({...p,apiKey:e.target.value}))}/></div>
+                            )}
+                            {config.provider === 'groq' && (
+                                <div>
+                                    <label className="lbl">API Key Groq</label>
+                                    <input className="input-modern" type="password" placeholder="gsk_..." value={config.groqKey} onChange={e=>setConfig(p=>({...p,groqKey:e.target.value}))}/>
+                                </div>
+                            )}
+                            {config.provider === 'huggingface' && (
+                                <div>
+                                    <label className="lbl">API Key Hugging Face</label>
+                                    <input className="input-modern" type="password" placeholder="hf_..." value={config.huggingFaceKey || ''} onChange={e=>setConfig(p=>({...p,huggingFaceKey:e.target.value}))}/>
+                                    <p className="text-[10px] text-gray-500 mt-2">Dapatkan key gratis di: <a href="https://huggingface.co/settings/tokens" target="_blank" className="text-blue-500 underline">huggingface.co/settings/tokens</a></p>
+                                </div>
+                            )}
+                            {config.provider === 'cohere' && (
+                                <div>
+                                    <label className="lbl">API Key Cohere</label>
+                                    <input className="input-modern" type="password" placeholder="..." value={config.cohereKey || ''} onChange={e=>setConfig(p=>({...p,cohereKey:e.target.value}))}/>
+                                    <p className="text-[10px] text-gray-500 mt-2">Dapatkan key gratis di: <a href="https://dashboard.cohere.com/api-keys" target="_blank" className="text-blue-500 underline">dashboard.cohere.com</a></p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="lbl">URL Logo (Link GDrive/Web)</label>
+                            <div className="flex gap-4 items-center">
+                                <div className="p-2 bg-white rounded-xl shadow-sm border border-gray-100"><img src={config.logo || DEFAULT_LOGO} className="w-10 h-10 object-contain" referrerPolicy="no-referrer" onError={(e) => {e.target.onerror = null; e.target.src = DEFAULT_LOGO}}/></div>
+                                <input className="input-modern" placeholder="https://..." value={config.logo || ''} onChange={e=>updateGlobalConfig('logo', e.target.value)}/>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="lbl">URL Avatar AI (Link GDrive/Web)</label>
+                            <div className="flex gap-4 items-center">
+                                <div className="p-1 bg-white rounded-full shadow-sm border border-gray-100"><img src={config.aiAvatar || DEFAULT_AVATAR} className="w-12 h-12 rounded-full object-cover" referrerPolicy="no-referrer" onError={(e) => {e.target.onerror = null; e.target.src = DEFAULT_AVATAR}}/></div>
+                                <input className="input-modern" placeholder="https://..." value={config.aiAvatar || ''} onChange={e=>updateGlobalConfig('aiAvatar', e.target.value)}/>
+                            </div>
+                        </div>
+
+                        <div>
+                             <label className="lbl">Link Sistem Informasi TA (URL)</label>
+                             <input className="input-modern" placeholder="https://..." value={config.ta_url || ''} onChange={e=>setConfig(p=>({...p, ta_url: e.target.value}))}/>
+                        </div>
+                        
+                        <div className="pt-6 border-t border-gray-200/50">
+                            <label className="lbl text-green-600">Database: Google Sheets</label>
+                            <input className="input-modern" placeholder="https://script.google.com/macros/s/..." value={config.scriptUrl} onChange={e=>setConfig(p=>({...p,scriptUrl:e.target.value}))}/>
+                        </div>
+                        <button onClick={()=>alert("Pengaturan Lokal tersimpan!")} className="w-full btn-sky py-3 justify-center mt-2 text-sm uppercase tracking-wide">Simpan Perubahan</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const DashboardView = ({ db, isOnline, onRefresh, isLoading }) => (
+            <div className="grid md:grid-cols-3 gap-4 md:gap-6 pb-24 animate-fade-in">
+                <div className="md:col-span-3 bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-600 rounded-[2.5rem] p-6 md:p-8 text-white shadow-2xl relative overflow-hidden group">
+                    <div className="relative z-10">
+                        <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-1">Selamat Datang</h2>
+                        <p className="text-indigo-100 text-lg font-medium opacity-90">Dashboard Akademik Terintegrasi</p>
+                        <div className="flex gap-2 mt-6">
+                            <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold backdrop-blur-md shadow-sm border border-white/20 ${isOnline?'bg-green-400/30 text-white':'bg-white/20 text-white'}`}>{isOnline ? '🟢 Online' : '🟠 Mode Offline'}</span>
+                            {isOnline && <button onClick={onRefresh} className="px-4 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-xs font-bold transition flex items-center gap-2 border border-white/20"><Icon path={PATHS.Cloud} size={14}/> {isLoading?'Loading...':'Refresh Data'}</button>}
+                        </div>
+                    </div>
+                    <Icon path={PATHS.Sparkles} className="absolute right-[-20px] bottom-[-20px] w-64 h-64 opacity-20 group-hover:scale-110 transition duration-700 ease-in-out"/>
+                    <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-t from-black/10 to-transparent"></div>
+                </div>
+                
+                <div className="glass p-6 rounded-[2rem] flex justify-between items-center shadow-lg hover:translate-y-[-2px] transition duration-300">
+                    <div className="p-4 bg-blue-50 rounded-2xl text-blue-600"><Icon path={PATHS.Users} className="w-8 h-8"/></div>
+                    <div className="text-right">
+                        <div className="text-2xl md:text-3xl font-bold text-gray-800">{db['Data Dosen']?.length||0}</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wide">Dosen</div>
+                    </div>
+                </div>
+                <div className="glass p-6 rounded-[2rem] flex justify-between items-center shadow-lg hover:translate-y-[-2px] transition duration-300">
+                    <div className="p-4 bg-orange-50 rounded-2xl text-orange-600"><Icon path={PATHS.Calendar} className="w-8 h-8"/></div>
+                    <div className="text-right">
+                        <div className="text-2xl md:text-3xl font-bold text-gray-800">{db['Kegiatan Mahasiswa']?.length||0}</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wide">Kegiatan</div>
+                    </div>
+                </div>
+                <div className="glass p-6 rounded-[2rem] flex justify-between items-center shadow-lg hover:translate-y-[-2px] transition duration-300">
+                    <div className="p-4 bg-green-50 rounded-2xl text-green-600"><Icon path={PATHS.AcademicCap} className="w-8 h-8"/></div>
+                    <div className="text-right">
+                        <div className="text-2xl md:text-3xl font-bold text-gray-800">{db['Database Skripsi']?.length||0}</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wide">Skripsi</div>
+                    </div>
+                </div>
+                
+                <div className="md:col-span-2 glass p-6 md:p-8 rounded-[2rem] shadow-xl">
+                    <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2"><Icon path={PATHS.Calendar} size={20} className="text-indigo-500"/> Jadwal Kuliah</h3>
+                    <div className="space-y-4">
+                        {db['Jadwal Kuliah']?.slice(0,3).map((j,i)=> (
+                            <div key={i} className="flex justify-between items-center p-4 bg-white/60 border border-white/40 rounded-2xl hover:bg-white/80 transition">
+                                <div>
+                                    <div className="font-bold text-gray-800">{j.Mata_Kuliah}</div>
+                                    <div className="text-xs font-medium text-gray-500 mt-1">{j.Nama_Dosen}</div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">{j.Jam}</div>
+                                    <div className="text-[10px] text-gray-400 mt-1 font-bold">{j.Ruang}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="glass p-6 md:p-8 rounded-[2rem] shadow-xl">
+                    <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2"><Icon path={PATHS.Megaphone} size={20} className="text-orange-500"/> Info Terbaru</h3>
+                    <div className="space-y-4">
+                        {db['Pusat Informasi']?.slice(0,3).map((info,i)=> (
+                            <div key={i} className="p-4 bg-white/60 border border-white/40 rounded-2xl hover:bg-white/80 transition group">
+                                <div className="font-bold text-sm text-gray-800 group-hover:text-indigo-600 transition-colors">{info.Judul}</div>
+                                <div className="text-xs text-gray-500 mt-2 leading-relaxed line-clamp-2">{info.Isi}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+
+        // --- NEW VIEW: CONSULTATION WITH INTERACTIVE CHAT ---
+        const ConsultationView = ({ db, user, onUpdateDb }) => {
+            const [activeChat, setActiveChat] = useState(null);
+            const [msgText, setMsgText] = useState("");
+            
+            // Helper: Find PA for Student
+            const myPA = useMemo(() => {
+                if (user.role === 'mhs') {
+                    const record = db['Akademik Mahasiswa']?.find(r => r.email === user.email);
+                    if (record && record.pembimbing) {
+                        const dosen = db['Data Dosen']?.find(d => d.Nama === record.pembimbing);
+                        return dosen ? { ...dosen, email: dosen.NIDN + '@dosen.fikpsi.ac.id' } : null;
+                    }
+                }
+                return null;
+            }, [db, user]);
+
+            // Helper: Find Students for Dosen
+            const myStudents = useMemo(() => {
+                if (user.role === 'dosen') {
+                    const records = db['Akademik Mahasiswa']?.filter(r => r.pembimbing === user.name);
+                    return records?.map(r => {
+                        const mhs = db['Data Mahasiswa']?.find(m => m.NPM === r.email.split('@')[0]); // Extract NPM from email logic
+                        // Fallback if not found in Data Mahasiswa but present in Akademik
+                        return mhs ? { ...mhs, email: r.email } : { Nama: 'Mahasiswa', email: r.email }; 
+                    }) || [];
+                }
+                return [];
+            }, [db, user]);
+
+            // Auto-select chat for student
+            useEffect(() => {
+                if (user.role === 'mhs' && myPA && !activeChat) {
+                    setActiveChat(myPA);
+                }
+            }, [myPA, user.role]);
+
+            const getMessages = (contactEmail) => {
+                return db['Konsultasi']?.filter(m => 
+                    (m.from === user.email && m.to === contactEmail) || 
+                    (m.from === contactEmail && m.to === user.email)
+                ).sort((a,b) => new Date(a.time) - new Date(b.time)) || [];
+            };
+
+            const handleSend = () => {
+                if(!msgText.trim() || !activeChat) return;
+                const newMsg = {
+                    id: Date.now(),
+                    from: user.email,
+                    to: activeChat.email,
+                    text: msgText,
+                    time: new Date().toISOString()
+                };
+                onUpdateDb('Konsultasi', null, newMsg);
+                setMsgText("");
+            };
+
+            const openWA = (phone) => {
+                if(phone) window.open(`https://wa.me/${phone}`, '_blank');
+                else alert("Nomor WhatsApp tidak tersedia.");
+            }
+
+            return (
+                <div className="max-w-6xl mx-auto h-[calc(100vh-140px)] flex gap-4 pb-4 animate-fade-in">
+                    {/* Sidebar List (Visible for Dosen, Hidden for Mhs if only 1 PA) */}
+                    {(user.role === 'dosen' || user.role === 'tendik') && (
+                        <div className="w-1/3 glass rounded-[2rem] p-4 flex flex-col shadow-xl overflow-hidden">
+                            <div className="mb-4 px-2">
+                                <h2 className="font-bold text-gray-800 text-lg">Daftar Chat</h2>
+                                <p className="text-xs text-gray-500">Mahasiswa Bimbingan</p>
+                            </div>
+                            <div className="flex-1 overflow-y-auto space-y-2 touch-scroll">
+                                {myStudents.length > 0 ? myStudents.map((s, i) => (
+                                    <div key={i} onClick={() => setActiveChat(s)} 
+                                        className={`p-3 rounded-xl flex items-center gap-3 cursor-pointer transition ${activeChat?.email === s.email ? 'bg-blue-100 ring-2 ring-blue-500/20' : 'hover:bg-white/50'}`}>
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm">
+                                            {s.Nama.charAt(0)}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-bold text-gray-800 truncate">{s.Nama}</div>
+                                            <div className="text-xs text-gray-500 truncate">{s.email}</div>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <div className="text-center text-gray-400 text-sm mt-10">Belum ada mahasiswa bimbingan.</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Chat Area */}
+                    <div className={`${user.role === 'mhs' ? 'w-full' : 'w-2/3'} glass rounded-[2rem] shadow-xl flex flex-col overflow-hidden relative`}>
+                        {activeChat ? (
+                            <>
+                                {/* Chat Header */}
+                                <div className="p-4 bg-white/40 border-b border-white/20 flex justify-between items-center backdrop-blur-md z-10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+                                            <img src={`https://ui-avatars.com/api/?name=${activeChat.Nama}&background=random`} className="w-full h-full object-cover"/>
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-gray-800">{activeChat.Nama}</div>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                                <span className="text-xs text-green-600 font-medium">Online</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {activeChat.NoHP && (
+                                        <button onClick={() => openWA(activeChat.NoHP)} className="bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-600 transition shadow-lg shadow-green-500/20 flex items-center gap-2">
+                                            <Icon path={PATHS.ChatAlt} size={14}/> Fast Response WA
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Chat Messages */}
+                                <div className="flex-1 overflow-y-auto p-4 space-y-3 touch-scroll bg-white/30">
+                                    {getMessages(activeChat.email).length > 0 ? getMessages(activeChat.email).map((m, i) => (
+                                        <div key={i} className={`flex ${m.from === user.email ? 'justify-end' : 'justify-start'}`}>
+                                            <div className={`max-w-[75%] px-4 py-2.5 shadow-sm text-sm ${m.from === user.email ? 'chat-bubble-user' : 'chat-bubble-other'}`}>
+                                                {m.text}
+                                                <div className={`text-[9px] mt-1 text-right ${m.from === user.email ? 'text-blue-100' : 'text-gray-400'}`}>
+                                                    {new Date(m.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
+                                            <Icon path={PATHS.ChatAlt} size={48} className="mb-2"/>
+                                            <p>Mulai percakapan dengan {activeChat.Nama}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Chat Input */}
+                                <div className="p-3 bg-white/60 backdrop-blur-md border-t border-white/20">
+                                    <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
+                                        <input 
+                                            className="flex-1 input-modern bg-white shadow-inner" 
+                                            placeholder="Ketik pesan..." 
+                                            value={msgText} 
+                                            onChange={e => setMsgText(e.target.value)}
+                                        />
+                                        <button type="submit" className="btn-sky aspect-square flex items-center justify-center rounded-xl shadow-lg hover:scale-105 active:scale-95 transition">
+                                            <Icon path={PATHS.Send} size={20}/>
+                                        </button>
+                                    </form>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                                <Icon path={PATHS.Users} size={64} className="mb-4 opacity-20"/>
+                                <p className="text-lg font-medium">Pilih kontak untuk memulai konsultasi</p>
+                                {user.role === 'mhs' && <p className="text-sm mt-2 text-red-400">Anda belum memiliki Dosen PA. Hubungi Admin.</p>}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- NEW VIEW: STUDENT ACADEMIC ---
+        const StudentAcademicView = ({ db, user, onUpdateDb }) => {
+            const myRecord = db['Akademik Mahasiswa']?.find(r => r.email === user.email) || {};
+            const [selectedPA, setSelectedPA] = useState(myRecord.pembimbing || '');
+            const [status, setStatus] = useState(myRecord.status || 'Aktif');
+            
+            // Dummy state for specific course lists (Since we simulate generic structure, we parse JSON or use arrays)
+            const [mkGagal, setMkGagal] = useState([]); 
+            const [mkBelum, setMkBelum] = useState([]);
+
+            const handleSave = () => {
+                const newData = {
+                    email: user.email,
+                    pembimbing: selectedPA,
+                    status: status,
+                    // In a real implementation we would save course lists too
+                };
+                
+                if (myRecord.id) {
+                    onUpdateDb('Akademik Mahasiswa', myRecord.id, newData);
+                } else {
+                    onUpdateDb('Akademik Mahasiswa', null, newData); // Add logic needed in crud
+                }
+                alert("Data Akademik Tersimpan (Simulasi)");
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto space-y-6 pb-24 animate-fade-in">
+                    <div className="glass p-8 rounded-[2rem] shadow-xl">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl"><Icon path={PATHS.AcademicCap} size={28}/></div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-800">Kartu Rencana Studi & Akademik</h2>
+                                <p className="text-sm text-gray-500">Kelola data akademik Anda di sini.</p>
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="lbl">Status Mahasiswa</label>
+                                <select className="input-modern" value={status} onChange={e=>setStatus(e.target.value)}>
+                                    <option value="Aktif">Aktif</option>
+                                    <option value="Cuti">Cuti</option>
+                                    <option value="Tidak Aktif">Tidak Aktif</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="lbl">Pembimbing Akademik</label>
+                                <select className="input-modern" value={selectedPA} onChange={e=>setSelectedPA(e.target.value)}>
+                                    <option value="">Pilih Dosen PA...</option>
+                                    {db['Data Dosen']?.map(d => (
+                                        <option key={d.id} value={d.Nama}>{d.Nama}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <button onClick={handleSave} className="mt-4 btn-sky w-full justify-center">Simpan Data Utama</button>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {/* MK Tidak Lulus */}
+                        <div className="glass p-6 rounded-[2rem] shadow-lg border-l-4 border-red-400">
+                            <h3 className="font-bold text-gray-800 mb-4 flex justify-between items-center">
+                                <span>MK Tidak Lulus</span>
+                                <button className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg hover:bg-red-200">+ Tambah</button>
+                            </h3>
+                            <div className="space-y-2">
+                                <div className="p-3 bg-white/50 rounded-xl text-sm flex justify-between">
+                                    <span>PSI102 - Statistika Dasar</span>
+                                    <span className="text-red-500 font-bold">E</span>
+                                </div>
+                                <div className="text-center text-xs text-gray-400 mt-2">Belum ada data lain</div>
+                            </div>
+                        </div>
+
+                        {/* MK Belum Ditempuh */}
+                        <div className="glass p-6 rounded-[2rem] shadow-lg border-l-4 border-yellow-400">
+                            <h3 className="font-bold text-gray-800 mb-4 flex justify-between items-center">
+                                <span>MK Belum Ditempuh</span>
+                                <button className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-lg hover:bg-yellow-200">+ Tambah</button>
+                            </h3>
+                            <div className="space-y-2">
+                                <div className="p-3 bg-white/50 rounded-xl text-sm text-gray-600">
+                                    PSI305 - Metodologi Penelitian
+                                </div>
+                                <div className="text-center text-xs text-gray-400 mt-2">Data dummy (Simulasi)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- NEW VIEW: LETTER (PESAN SURAT) ---
+        const LetterView = ({ db, userRole, onAddLink }) => (
+            <div className="max-w-4xl mx-auto space-y-6 pb-24 animate-fade-in">
+                <div className="glass p-8 rounded-[2rem] shadow-xl space-y-2">
+                    <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                        <span className="p-2 bg-purple-100 text-purple-600 rounded-lg"><Icon path={PATHS.Mail} size={24}/></span>
+                        Layanan Persuratan Mahasiswa
+                    </h2>
+                    <p className="text-gray-500">Pilih jenis surat yang ingin Anda ajukan.</p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                    {db['Layanan Surat']?.map((item, i) => (
+                        <a key={i} href={item.url} target="_blank" className="group glass p-6 rounded-2xl border-l-4 border-purple-500 hover:bg-white transition hover:shadow-lg flex justify-between items-center">
+                            <div>
+                                <div className="font-bold text-gray-800 text-lg group-hover:text-purple-600 transition-colors">{item.nama}</div>
+                                <div className="text-xs text-gray-400 mt-1 uppercase tracking-wider">{item.kategori || 'Umum'}</div>
+                            </div>
+                            <Icon path={PATHS.Send} className="text-gray-300 group-hover:text-purple-500 transition-transform group-hover:translate-x-1"/>
+                        </a>
+                    ))}
+                </div>
+
+                {userRole === 'tendik' && (
+                    <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-center text-sm text-yellow-800">
+                        <strong>Admin Note:</strong> Untuk menambah atau mengedit link surat, silakan buka menu <strong>Database</strong> dan pilih tabel <strong>Layanan Surat</strong>.
+                    </div>
+                )}
+            </div>
+        );
+
+        const LandingView = ({ onLogin, config, db }) => {
+            const [loginRole, setLoginRole] = useState('mhs'); // mhs, dosen, tendik
+            const [loginId, setLoginId] = useState(''); // NPM / NIDN / NITK
+            const [loginPass, setLoginPass] = useState(''); // NEW PASSWORD FIELD
+            const [error, setError] = useState('');
+            const [adminPass, setAdminPass] = useState('');
+            const [showAdminLogin, setShowAdminLogin] = useState(false);
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                setError('');
+                
+                // Sanitasi input agar tidak error karena spasi dan pastikan string
+                const cleanId = String(loginId).trim();
+                const cleanPass = String(loginPass).trim();
+
+                if (loginRole === 'mhs') {
+                    // Login Mahasiswa via NPM & Password
+                    const mhs = db['Data Mahasiswa']?.find(m => String(m.NPM) === cleanId && String(m.Password) === cleanPass);
+                    if (mhs) {
+                        onLogin({ name: mhs.Nama, email: mhs.NPM + '@mhs.fikpsi.ac.id', role: 'mhs' });
+                    } else {
+                        setError("NPM atau Password salah!");
+                    }
+                } else if (loginRole === 'dosen') {
+                    // Login Dosen via NIDN & Password (Fallback logic fixed)
+                    // Cari dosen berdasarkan NIDN (pastikan tipe data string agar aman)
+                    const dosen = db['Data Dosen']?.find(d => String(d.NIDN) === cleanId);
+
+                    if (dosen) {
+                        // Cek Password:
+                        // 1. Jika input password sama dengan field 'Password' di database
+                        // 2. ATAU jika input password sama dengan NIDN (sebagai default password jika belum diubah)
+                        const dbPass = dosen.Password ? String(dosen.Password) : "";
+                        const isDefaultPass = cleanPass === String(dosen.NIDN);
+
+                        if ((dbPass && cleanPass === dbPass) || isDefaultPass) {
+                            onLogin({ name: dosen.Nama, email: dosen.NIDN + '@dosen.fikpsi.ac.id', role: 'dosen' });
+                        } else {
+                            setError("Password salah! (Gunakan NIDN jika belum ubah password)");
+                        }
+                    } else {
+                        setError("NIDN tidak ditemukan di Database!");
+                    }
+                } else if (loginRole === 'tendik') {
+                    // Login Tendik via NITK & Password
+                    const tendik = db['Data Tendik']?.find(t => String(t.NITK) === cleanId && String(t.Password) === cleanPass);
+                    if (tendik) {
+                        onLogin({ name: tendik.Nama, email: tendik.NITK + '@tendik.fikpsi.ac.id', role: 'tendik' });
+                    } else {
+                        setError("NITK atau Password salah!");
+                    }
+                }
+            };
+
+            const handleAdminLogin = () => {
+                if(btoa(adminPass) === AUTH_TOKEN) { // Pass: tagariyeninotna
+                    onLogin({ name: 'Admin Utama', role: 'superadmin', email: 'admin@fikpsi.ac.id' }); // Changed role
+                } else {
+                    alert("Akses Ditolak!");
+                }
+            };
+
+            return (
+                <div className="min-h-screen w-full flex items-center justify-center p-4 relative bg-gray-50/50">
+                    {/* Fixed Background Blobs */}
+                    <div className="fixed inset-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+                        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[#0ea5e9] rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+                        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-[#6366f1] rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+                        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+                    </div>
+
+                    <div className="w-full max-w-md my-auto">
+                        <div className="glass p-8 md:p-10 rounded-[2.5rem] shadow-2xl w-full border border-white/60 text-center relative z-10 transition-all duration-300">
+                            
+                            {/* Logo */}
+                            <div className="mb-6 md:mb-8 group">
+                                <div className="w-24 h-24 bg-white rounded-3xl shadow-lg mx-auto flex items-center justify-center mb-6 p-4 cursor-pointer transform transition-transform group-hover:scale-105 active:scale-95"
+                                     onClick={() => setShowAdminLogin(true)} title="Klik untuk Login Admin Utama">
+                                    <img 
+                                        src={config.logo} 
+                                        className="w-full h-full object-contain" 
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => {e.target.onerror = null; e.target.src = "https://drive.google.com/thumbnail?id=1Tgb9hkf2E27XR3Vx9xTsHWz9f-W99l_2&sz=s500"}}
+                                    />
+                                </div>
+                                <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-2 tracking-tight leading-tight">{config.appName}</h1>
+                                <p className="text-gray-500 font-medium text-sm md:text-base">Intelligent Research Hub</p>
+                            </div>
+
+                            <form onSubmit={handleLogin} className="space-y-4 animate-fade-in text-left">
+                                {/* Role Selector Tabs */}
+                                <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
+                                    {['mhs', 'dosen', 'tendik'].map(role => (
+                                        <button 
+                                            key={role}
+                                            type="button"
+                                            onClick={() => {setLoginRole(role); setError(''); setLoginId(''); setLoginPass('');}}
+                                            className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${loginRole === role ? 'bg-white text-[#0ea5e9] shadow-md transform scale-105' : 'text-gray-400 hover:text-gray-600'}`}
+                                        >
+                                            {role === 'mhs' ? 'Mahasiswa' : role === 'dosen' ? 'Dosen' : 'Tendik'}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="mb-2">
+                                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase mb-1 block">
+                                        {loginRole === 'mhs' ? 'NPM (Nomor Pokok Mahasiswa)' : loginRole === 'dosen' ? 'NIDN (Nomor Induk Dosen Nasional)' : 'NITK (Nomor Induk Tenaga Kependidikan)'}
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        required 
+                                        className="input-modern bg-white/80 focus:bg-white text-lg tracking-wide text-center font-bold" 
+                                        placeholder={loginRole === 'mhs' ? 'Contoh: 220101' : loginRole === 'dosen' ? 'Contoh: 12345' : 'Contoh: 999001'} 
+                                        value={loginId} 
+                                        onChange={e=>setLoginId(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="mb-2">
+                                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase mb-1 block">Password</label>
+                                    <input 
+                                        type="password" 
+                                        required 
+                                        className="input-modern bg-white/80 focus:bg-white text-lg tracking-wide text-center font-bold" 
+                                        placeholder="••••••••" 
+                                        value={loginPass} 
+                                        onChange={e=>setLoginPass(e.target.value)}
+                                    />
+                                </div>
+
+                                {error && <div className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-xl border border-red-100 flex items-center gap-2 animate-pulse"><Icon path={PATHS.Warn} size={16}/> {error}</div>}
+                                <button type="submit" className="w-full btn-sky py-3.5 justify-center mt-4 font-bold shadow-lg shadow-blue-500/20 text-lg">Masuk Aplikasi</button>
+                            </form>
+                            
+                            <div className="mt-4 text-center">
+                                <p className="text-[10px] text-gray-400 font-medium">
+                                    {loginRole === 'dosen' ? 'Info: Gunakan NIDN sebagai Password' : 'Demo: mhs/admin (Pass sesuai user)'}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div className="mt-6 text-center text-[10px] md:text-xs text-gray-400 font-medium">
+                            &copy; 2026 MyFIKPsi System
+                        </div>
+                    </div>
+
+                    {/* Admin Modal */}
+                    {showAdminLogin && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={(e) => e.target === e.currentTarget && setShowAdminLogin(false)}>
+                            <div className="bg-white p-6 rounded-3xl w-full max-w-xs shadow-2xl transform transition-all scale-100">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold text-lg text-gray-800">Login Admin Utama</h3>
+                                    <button onClick={() => setShowAdminLogin(false)} className="text-gray-400 hover:text-gray-600"><Icon path={PATHS.X} size={20}/></button>
+                                </div>
+                                <div className="space-y-3">
+                                    <input type="password" autoFocus className="input-modern bg-gray-50" placeholder="Password Admin" value={adminPass} onChange={e=>setAdminPass(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}/>
+                                    <button onClick={handleAdminLogin} className="w-full btn-sky py-3 rounded-xl justify-center font-bold shadow-lg shadow-blue-500/20">Masuk</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [page, setPage] = useState('chat');
+            const [user, setUser] = useState(null); // User Object: {name, email, role}
+            const [menuOpen, setMenuOpen] = useState(false);
+            
+            // Config State
+            const [config, setConfig] = useStickyState({
+                appName: "MyFIKPsi",
+                apiKey: "AIzaSyBJbzKdyiHP5SE77rgRILjCj-9nBbqpssA", 
+                groqKey: "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", 
+                huggingFaceKey: "3WBXRiQbYqTChr1QnKUXmbVham6aavSC5YBX7hG4", 
+                cohereKey: "3WBXRiQbYqTChr1QnKUXmbVham6aavSC5YBX7hG4", 
+                provider: "gemini", 
+                logo: null, aiAvatar: null, 
+                scriptUrl: "https://script.google.com/macros/s/AKfycbxal9wr5uPaAXgXbUnILXEMw_52UcZ0KJtWbvMgbBeB-bz-YuNBza4OB0TC1X2xlRMVIw/exec",
+                ta_url: ""
+            }, 'fikpsi_config_v58_generator_surat'); 
+
+            const { db, add, del, update, clear, import: imp, isOnline, refresh, isLoading } = useDatabase(INITIAL_DB, config.scriptUrl);
+
+            // OVERRIDE CONFIG WITH DB IF AVAILABLE (Konsistensi Global)
+            const globalConfig = db['Konfigurasi']?.[0];
+            const activeConfig = {
+                ...config,
+                appName: globalConfig?.app_name || config.appName,
+                logo: convertGDriveLink(globalConfig?.logo_url) || config.logo || DEFAULT_LOGO,
+                aiAvatar: convertGDriveLink(globalConfig?.avatar_url) || config.aiAvatar || DEFAULT_AVATAR,
+                ta_url: globalConfig?.ta_url || config.ta_url || '#'
+            };
+            
+            const logout = () => { setUser(null); setPage('chat'); };
+
+            // Helper to update specific tables like "Akademik Mahasiswa" or Program Links
+            const handleUpdateDb = (key, id, data) => {
+                if(id) {
+                    update(key, id, data);
+                } else {
+                    add(key, data);
+                }
+            };
+
+            if (!user) {
+                return <LandingView onLogin={setUser} config={activeConfig} db={db} />;
+            }
+
+            // Role Shortcut
+            const userRole = user.role;
+
+            const Sidebar = () => (
+                <>
+                    <div className={`fixed inset-0 bg-black/20 z-30 md:hidden backdrop-blur-sm transition-opacity ${menuOpen?'opacity-100':'opacity-0 pointer-events-none'}`} onClick={()=>setMenuOpen(false)}/>
+                    <div className={`fixed inset-y-0 left-0 z-40 w-[80%] max-w-72 glass border-r border-white/40 transform transition-transform duration-300 safe-pt safe-pb flex flex-col shadow-2xl ${menuOpen?'translate-x-0':'-translate-x-full'} md:translate-x-0`}>
+                        <div className="p-8 flex items-center gap-4 cursor-pointer active:scale-95 transition-transform select-none"
+                            onClick={logout}
+                            title="Klik untuk Logout"
+                        >
+                            <div className={`relative ${userRole === 'tendik' ? 'ring-2 ring-red-400 rounded-xl' : ''}`}>
+                                <img 
+                                    src={activeConfig.logo} 
+                                    className="w-12 h-12 object-contain bg-white rounded-xl p-1 shadow-sm border border-gray-100" 
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => {e.target.onerror = null; e.target.src = DEFAULT_LOGO}}
+                                />
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                            </div>
+                            <div>
+                                <h1 className="font-extrabold text-gray-800 leading-tight text-lg">{activeConfig.appName}</h1>
+                                <div className="flex flex-col gap-0.5 mt-1">
+                                    <span className="text-sm font-bold text-gray-700 truncate max-w-[140px]">{user.name}</span>
+                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                        <span className={`w-2 h-2 rounded-full ${isOnline?'bg-green-500':'bg-orange-400'}`}></span> 
+                                        <span className="text-blue-500 ml-1">{userRole.toUpperCase()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <nav className="flex-1 px-6 space-y-2 overflow-y-auto touch-scroll">
+                            <button onClick={()=>{setPage('chat');setMenuOpen(false)}} className={`nav-btn ${page==='chat'?'active':''}`}><Icon path={PATHS.Sparkles}/> Chat AI</button>
+                            
+                            {/* Menu Mahasiswa */}
+                            {userRole === 'mhs' && (
+                                <>
+                                    <button onClick={()=>{setPage('akademik');setMenuOpen(false)}} className={`nav-btn ${page==='akademik'?'active':''}`}><Icon path={PATHS.AcademicCap}/> Akademik</button>
+                                    <button onClick={()=>{setPage('surat');setMenuOpen(false)}} className={`nav-btn ${page==='surat'?'active':''}`}><Icon path={PATHS.Mail}/> Pesan Surat</button>
+                                    <button onClick={()=>{setPage('peminatan');setMenuOpen(false)}} className={`nav-btn ${page==='peminatan'?'active':''}`}><Icon path={PATHS.Check}/> Pilih Peminatan</button>
+                                </>
+                            )}
+
+                            {/* Menu Dosen, Mahasiswa, Tendik */}
+                            <button onClick={()=>{setPage('konsultasi');setMenuOpen(false)}} className={`nav-btn ${page==='konsultasi'?'active':''}`}><Icon path={PATHS.ChatAlt}/> Konsultasi Online</button>
+                            
+                            {/* Menu Umum */}
+                            <button onClick={()=>{setPage('akreditasi');setMenuOpen(false)}} className={`nav-btn ${page==='akreditasi'?'active':''}`}><Icon path={PATHS.Award}/> Akreditasi</button>
+
+                            {/* MENU BARU PBL & PKM (SEMUA USER) */}
+                            <button onClick={()=>{setPage('pbl1');setMenuOpen(false)}} className={`nav-btn ${page==='pbl1'?'active':''}`}><Icon path={PATHS.ClipboardCheck}/> PBL 1</button>
+                            <button onClick={()=>{setPage('pbl2');setMenuOpen(false)}} className={`nav-btn ${page==='pbl2'?'active':''}`}><Icon path={PATHS.ClipboardCheck}/> PBL 2</button>
+                            <button onClick={()=>{setPage('pkm');setMenuOpen(false)}} className={`nav-btn ${page==='pkm'?'active':''}`}><Icon path={PATHS.Flag}/> PKM Institusi</button>
+
+                            {/* Menu Baru untuk SEMUA USER (Sistem Informasi TA) */}
+                            <a href={activeConfig.ta_url} target="_blank" className="nav-btn text-indigo-600 hover:text-indigo-800" rel="noreferrer">
+                                <Icon path={PATHS.Link}/> Sistem Informasi TA
+                            </a>
+
+                            {/* Menu Tendik & SuperAdmin */}
+                            {(userRole === 'tendik' || userRole === 'superadmin' || userRole === 'dosen') && <>
+                                {(userRole !== 'dosen') && <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-6 mb-3 ml-3 text-red-400">Admin Panel</div>}
+                                <button onClick={()=>{setPage('mou');setMenuOpen(false)}} className={`nav-btn ${page==='mou'?'active':''}`}><Icon path={PATHS.Briefcase}/> Arsip MoU/MoA</button>
+                                <button onClick={()=>{setPage('sk-dekan');setMenuOpen(false)}} className={`nav-btn ${page==='sk-dekan'?'active':''}`}><Icon path={PATHS.Book}/> SK Dekan</button>
+                            </>}
+
+                            {/* Menu Admin Khusus */}
+                            {(userRole === 'tendik' || userRole === 'superadmin') && <>
+                                <button onClick={()=>{setPage('arsip-surat');setMenuOpen(false)}} className={`nav-btn ${page==='arsip-surat'?'active':''}`}><Icon path={PATHS.Archive}/> Arsip Surat</button>
+                                {/* NEW: GENERATOR NOMOR SURAT */}
+                                <button onClick={()=>{setPage('generator-surat');setMenuOpen(false)}} className={`nav-btn ${page==='generator-surat'?'active':''}`}><Icon path={PATHS.Calculator}/> Generator No Surat</button>
+                                <button onClick={()=>{setPage('peminatan');setMenuOpen(false)}} className={`nav-btn ${page==='peminatan'?'active':''}`}><Icon path={PATHS.Check}/> Setting Peminatan</button>
+                                <button onClick={()=>{setPage('dashboard');setMenuOpen(false)}} className={`nav-btn ${page==='dashboard'?'active':''}`}><Icon path={PATHS.Home}/> Dashboard</button>
+                            </>}
+
+                            {/* Menu Khusus SuperAdmin (Login via Logo) */}
+                            {userRole === 'superadmin' && <>
+                                <button onClick={()=>{setPage('data');setMenuOpen(false)}} className={`nav-btn ${page==='data'?'active':''}`}><Icon path={PATHS.Database}/> Database</button>
+                                <button onClick={()=>{setPage('settings');setMenuOpen(false)}} className={`nav-btn ${page==='settings'?'active':''}`}><Icon path={PATHS.Cog}/> Pengaturan</button>
+                            </>}
+                        </nav>
+                        
+                        {/* Tombol Logout Tambahan */}
+                        <div className="px-6 pb-6 pt-2">
+                            <button onClick={logout} className="w-full flex items-center justify-center gap-2 p-3 rounded-2xl bg-red-50 text-red-500 font-bold text-sm hover:bg-red-100 transition active:scale-95 shadow-sm border border-red-100">
+                                <Icon path={PATHS.Logout} size={18}/>
+                                Keluar Aplikasi
+                            </button>
+                        </div>
+                        
+                        <div className="p-4 text-center">
+                            <p className="text-[10px] text-gray-400 font-medium">© 2026 MyFIKPsi</p>
+                        </div>
+                    </div>
+                </>
+            );
+
+            return (
+                <div className="flex h-screen w-screen overflow-hidden text-gray-800 font-sans">
+                    <Sidebar/>
+                    <div className="flex-1 md:ml-72 flex flex-col h-full relative z-10">
+                        <header className="h-20 px-4 md:px-8 flex items-center justify-between sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-white/40 safe-pt transition-all">
+                            <div className="flex items-center gap-4">
+                                <button className="md:hidden p-2 active:bg-gray-200/50 rounded-xl text-gray-600 transition" onClick={()=>setMenuOpen(true)}>
+                                    <Icon path={PATHS.Menu} size={24}/>
+                                </button>
+                                <div>
+                                    <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600 tracking-tight leading-none">
+                                        {page === 'chat' ? activeConfig.appName : 
+                                         page === 'konsultasi' ? 'KONSULTASI ONLINE' :
+                                         page === 'surat' ? 'LAYANAN SURAT' :
+                                         page === 'akademik' ? 'KARTU RENCANA STUDI' :
+                                         page === 'pbl1' ? 'PRAKTIKUM BELAJAR LAPANGAN 1' :
+                                         page === 'pbl2' ? 'PRAKTIKUM BELAJAR LAPANGAN 2' :
+                                         page === 'pkm' ? 'PROGRAM PKM INSTITUSI' :
+                                         page === 'peminatan' ? 'PILIH PEMINATAN' :
+                                         page === 'mou' ? 'ARSIP MOU / MOA' :
+                                         page === 'sk-dekan' ? 'DAFTAR SK DEKAN' :
+                                         page === 'arsip-surat' ? 'ARSIP SURAT' :
+                                         page === 'akreditasi' ? 'ARSIP AKREDITASI' :
+                                         page === 'generator-surat' ? 'GENERATOR NOMOR SURAT' :
+                                         page.toUpperCase()}
+                                    </h1>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden md:block mt-0.5">Academic System</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <div className="text-right hidden sm:block">
+                                    <Clock/>
+                                </div>
+                            </div>
+                        </header>
+                        
+                        <main className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth touch-scroll">
+                            <div className="max-w-6xl mx-auto h-full safe-pb">
+                                {page==='chat' && <ChatView context={db} config={activeConfig} />}
+                                {page==='konsultasi' && <ConsultationView db={db} user={user} onUpdateDb={handleUpdateDb} />}
+                                {page==='akademik' && <StudentAcademicView db={db} user={user} onUpdateDb={handleUpdateDb} />}
+                                {page==='surat' && <LetterView db={db} userRole={userRole} />}
+                                
+                                {/* New Program Pages */}
+                                {page==='pbl1' && <ProgramView title="Praktikum Belajar Lapangan 1" sheetName="Data PBL 1" linkKey="PBL 1" db={db} user={user} onUpdateDb={handleUpdateDb} onAdd={(d)=>add('Data PBL 1',d)} onDel={(id)=>del('Data PBL 1',id)} onClear={()=>clear('Data PBL 1')} onImp={(d)=>imp('Data PBL 1',d)} />}
+                                {page==='pbl2' && <ProgramView title="Praktikum Belajar Lapangan 2" sheetName="Data PBL 2" linkKey="PBL 2" db={db} user={user} onUpdateDb={handleUpdateDb} onAdd={(d)=>add('Data PBL 2',d)} onDel={(id)=>del('Data PBL 2',id)} onClear={()=>clear('Data PBL 2')} onImp={(d)=>imp('Data PBL 2',d)} />}
+                                {page==='pkm' && <ProgramView title="PKM Institusi" sheetName="Data PKM Institusi" linkKey="PKM Institusi" db={db} user={user} onUpdateDb={handleUpdateDb} onAdd={(d)=>add('Data PKM Institusi',d)} onDel={(id)=>del('Data PKM Institusi',id)} onClear={()=>clear('Data PKM Institusi')} onImp={(d)=>imp('Data PKM Institusi',d)} />}
+                                {page==='peminatan' && <ProgramView title="Pilih Peminatan" sheetName="" linkKey="Peminatan" db={db} user={user} onUpdateDb={handleUpdateDb} onAdd={()=>{}} onDel={()=>{}} onClear={()=>{}} onImp={()=>{}} />}
+                                
+                                {page==='mou' && <GenericTable title="Arsip MoU / MoA" data={db['Arsip MoU']||[]} columns={TABLE_CONFIG['Arsip MoU'].columns} formConfig={TABLE_CONFIG['Arsip MoU'].form} onAdd={(d)=>add('Arsip MoU',d)} onDel={(id)=>del('Arsip MoU',id)} onClear={()=>clear('Arsip MoU')} onImp={(d)=>imp('Arsip MoU',d)} isLocked={userRole === 'dosen' && userRole !== 'superadmin' && userRole !== 'tendik'} />}
+                                {page==='sk-dekan' && <GenericTable title="Daftar SK Dekan" data={db['Data SK Dekan']||[]} columns={TABLE_CONFIG['Data SK Dekan'].columns} formConfig={TABLE_CONFIG['Data SK Dekan'].form} onAdd={(d)=>add('Data SK Dekan',d)} onDel={(id)=>del('Data SK Dekan',id)} onClear={()=>clear('Data SK Dekan')} onImp={(d)=>imp('Data SK Dekan',d)} isLocked={userRole === 'dosen' || userRole === 'mhs'} />}
+                                {page==='arsip-surat' && <GenericTable title="Arsip Surat Masuk & Keluar" data={db['Arsip Surat']||[]} columns={TABLE_CONFIG['Arsip Surat'].columns} formConfig={TABLE_CONFIG['Arsip Surat'].form} onAdd={(d)=>add('Arsip Surat',d)} onDel={(id)=>del('Arsip Surat',id)} onClear={()=>clear('Arsip Surat')} onImp={(d)=>imp('Arsip Surat',d)} isLocked={userRole !== 'tendik' && userRole !== 'superadmin'} />}
+                                {page==='akreditasi' && <GenericTable title="Arsip Akreditasi" data={db['Arsip Akreditasi']||[]} columns={TABLE_CONFIG['Arsip Akreditasi'].columns} formConfig={TABLE_CONFIG['Arsip Akreditasi'].form} onAdd={(d)=>add('Arsip Akreditasi',d)} onDel={(id)=>del('Arsip Akreditasi',id)} onClear={()=>clear('Arsip Akreditasi')} onImp={(d)=>imp('Arsip Akreditasi',d)} isLocked={userRole !== 'tendik' && userRole !== 'superadmin'} />}
+                                
+                                {page==='generator-surat' && <LetterGeneratorView db={db} onAdd={add} />}
+
+                                {page==='dashboard' && <DashboardView db={db} isOnline={isOnline} onRefresh={refresh} isLoading={isLoading} />}
+                                {page==='settings' && <SettingsView config={config} setConfig={setConfig} db={db} />}
+                                {page==='data' && (
+                                    <div className="space-y-10">
+                                        {Object.keys(TABLE_CONFIG).map(key => (
+                                            <GenericTable key={key} title={key} data={db[key]||[]} columns={TABLE_CONFIG[key].columns} formConfig={TABLE_CONFIG[key].form} 
+                                                onAdd={(d)=>add(key,d)} onDel={(id)=>del(key,id)} onClear={()=>clear(key)} onImp={(d)=>imp(key,d)} isLocked={false} 
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
+                    <style>{`
+                        .nav-btn { width: 100%; display: flex; gap: 14px; padding: 14px 20px; border-radius: 16px; font-size: 14px; font-weight: 600; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); color: #64748b; }
+                        .nav-btn:hover { background: rgba(255,255,255,0.6); color: #334155; transform: translateX(4px); }
+                        .nav-btn.active { background: rgba(224, 242, 254, 0.5); color: #0284c7; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15); font-weight: 700; transform: translateX(4px); border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(8px); }
+                        .btn-white { background: white; padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 8px; transition: all 0.2s; border: 1px solid rgba(0,0,0,0.05); }
+                        .btn-sky { background: #0ea5e9; color: white; padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+                        .btn-white:active, .btn-sky:active { transform: scale(0.96); }
+                        .lbl { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 6px; margin-left: 4px; letter-spacing: 0.05em; }
+                    `}</style>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
