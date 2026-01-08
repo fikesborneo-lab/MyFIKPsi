@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <title>MyFIKPsi</title>
+    <title>MyFIKPsi - By Inotna</title>
     
     <!-- React Core -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -78,6 +78,40 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(14, 165, 233, 0.2); border-radius: 10px; }
+        
+        /* Announcement Card Styles */
+        .announcement-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        .announcement-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .announcement-urgent {
+            border-left-color: #ef4444;
+        }
+        .announcement-important {
+            border-left-color: #f59e0b;
+        }
+        .announcement-normal {
+            border-left-color: #3b82f6;
+        }
+        .announcement-info {
+            border-left-color: #10b981;
+        }
+        
+        /* Chat Bubble Styles */
+        .chat-bubble-user {
+            background: linear-gradient(to right, #06b6d4, #3b82f6);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+        }
+        .chat-bubble-other {
+            background: white;
+            color: #1f2937;
+            border-radius: 18px 18px 18px 4px;
+        }
     </style>
 </head>
 <body class="antialiased text-slate-800">
@@ -130,7 +164,10 @@
             FileText: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
             Archive: "M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4",
             Award: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z",
-            Calculator: "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+            Calculator: "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z",
+            Bell: "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
+            Clock: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+            Filter: "M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
         };
 
         // --- SECURITY: PASSWORD OBFUSCATION ---
@@ -178,6 +215,12 @@
                 { id: 1, nama: 'Keterangan Aktif Kuliah', url: 'https://forms.google.com/', kategori: 'Mahasiswa' },
                 { id: 2, nama: 'Izin Tugas Mata Kuliah', url: 'https://forms.google.com/', kategori: 'Mahasiswa' }
             ],
+            // DATA BARU: Pengumuman
+            'Pengumuman': [
+                { id: 1, judul: "Pembukaan Pendaftaran PBL 1", kategori: "Akademik", prioritas: "penting", konten: "Pendaftaran Praktikum Belajar Lapangan 1 telah dibuka. Silakan daftar melalui portal akademik sebelum tanggal 30 Juni 2024.", tanggal: new Date().toISOString().split('T')[0], pengirim: "Admin FIKPsi" },
+                { id: 2, judul: "Jadwal Ujian Akhir Semester", kategori: "Akademik", prioritas: "normal", konten: "Jadwal ujian akhir semester dapat diunduh di portal akademik. Mohon diperhatikan jadwal masing-masing mata kuliah.", tanggal: new Date(Date.now() - 86400000).toISOString().split('T')[0], pengirim: "Bagian Akademik" },
+                { id: 3, judul: "Libur Hari Raya", kategori: "Umum", prioritas: "normal", konten: "Diberitahukan bahwa libur Hari Raya Idul Fitri akan dimulai dari tanggal 10-17 April 2024. Kegiatan perkuliahan akan dimulai kembali pada 18 April 2024.", tanggal: new Date(Date.now() - 172800000).toISOString().split('T')[0], pengirim: "Admin FIKPsi" }
+            ],
             // DATA BARU: Mata Kuliah & Akademik (Updated with Semester)
             'Mata Kuliah': [
                 { id: 1, kode: 'PSI101', nama: 'Psikologi Umum', sks: 3, semester: 1 },
@@ -197,7 +240,9 @@
             'Arsip MoU': [],
             'Data SK Dekan': [],
             'Arsip Surat': [],
-            'Arsip Akreditasi': [], 
+            'Arsip Akreditasi': [],
+            'Alat Laboratorium': [],
+            'Peminjaman Alat Laboratorium': [], 
             'Register Nomor Surat': [], // Baru: Tabel Register Nomor
             'Program Links': [
                 { id: 1, program: 'PBL 1', url: '#', report_url: '#', guide_url: '#', material_url: '#' },
@@ -358,6 +403,85 @@
                     {key:'guide_url',label:'Link Download Panduan'},
                     {key:'material_url',label:'Link Download Materi Pembekalan'}
                 ] 
+            },
+            // NEW: Pengumuman Table Configuration
+            'Pengumuman': {
+                columns: [
+                    {key:'judul', label:'Judul'},
+                    {key:'kategori', label:'Kategori', render: (val) => <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{val}</span>},
+                    {key:'prioritas', label:'Prioritas', render: (val) => {
+                        let className = "px-2 py-1 rounded-full text-xs font-medium ";
+                        if(val === 'penting') className += "bg-red-100 text-red-700";
+                        else if(val === 'normal') className += "bg-blue-100 text-blue-700";
+                        else if(val === 'info') className += "bg-green-100 text-green-700";
+                        else className += "bg-gray-100 text-gray-700";
+                        return <span className={className}>{val}</span>;
+                    }},
+                    {key:'tanggal', label:'Tanggal'},
+                    {key:'pengirim', label:'Pengirim'}
+                ],
+                form: [
+                    {key:'judul', label:'Judul Pengumuman'},
+                    {key:'kategori', label:'Kategori', type:'select', options:[
+                        {value:'Akademik', label:'Akademik'},
+                        {value:'Kemahasiswaan', label:'Kemahasiswaan'},
+                        {value:'Umum', label:'Umum'},
+                        {value:'Beasiswa', label:'Beasiswa'},
+                        {value:'Lomba', label:'Lomba'}
+                    ]},
+                    {key:'prioritas', label:'Prioritas', type:'select', options:[
+                        {value:'normal', label:'Normal'},
+                        {value:'penting', label:'Penting'},
+                        {value:'info', label:'Info'}
+                    ]},
+                    {key:'konten', label:'Isi Pengumuman', type:'textarea'},
+                    {key:'tanggal', label:'Tanggal', type:'date'},
+                    {key:'pengirim', label:'Pengirim'}
+                ]
+            }
+        ,
+            'Alat Laboratorium': {
+                columns: [
+                    {key:'nama', label:'Nama Alat'},
+                    {key:'kode', label:'Kode Inventaris'},
+                    {key:'lokasi', label:'Lokasi'},
+                    {key:'kondisi', label:'Kondisi'},
+                    {key:'keterangan', label:'Keterangan'}
+                ],
+                form: [
+                    {key:'nama', label:'Nama Alat'},
+                    {key:'kode', label:'Kode Inventaris'},
+                    {key:'lokasi', label:'Lokasi Penyimpanan / Ruang'},
+                    {key:'kondisi', label:'Kondisi (Baik/Rusak/Rusak Ringan)'},
+                    {key:'keterangan', label:'Keterangan Tambahan'}
+                ]
+            }
+        ,
+            'Peminjaman Alat Laboratorium': {
+                columns: [
+                    {key:'tanggal_pinjam', label:'Tgl Pinjam'},
+                    {key:'nama_peminjam', label:'Nama Peminjam'},
+                    {key:'id_peminjam', label:'NIM / NIP'},
+                    {key:'lab_prodi', label:'Lab / Prodi'},
+                    {key:'nama_alat', label:'Nama Alat'},
+                    {key:'status', label:'Status'},
+                    {key:'disetujui_oleh', label:'Disetujui Oleh'},
+                    {key:'tanggal_rencana_kembali', label:'Rencana Kembali'},
+                    {key:'tanggal_kembali', label:'Tgl Kembali'},
+                    {key:'keperluan', label:'Keperluan'}
+                ],
+                form: [
+                    {key:'nama_peminjam', label:'Nama Peminjam'},
+                    {key:'id_peminjam', label:'NIM / NIP'},
+                    {key:'lab_prodi', label:'Lab / Prodi'},
+                    {key:'nama_alat', label:'Nama Alat yang Dipinjam'},
+                    {key:'tanggal_pinjam', label:'Tanggal Pinjam', type:'date'},
+                    {key:'tanggal_rencana_kembali', label:'Tanggal Rencana Pengembalian', type:'date'},
+                    {key:'status', label:'Status', type:'select', options:['Dipinjam','Dikembalikan'].map(s=>({value:s,label:s}))},
+                    {key:'disetujui_oleh', label:'Disetujui Oleh'},
+                    {key:'tanggal_kembali', label:'Tanggal Pengembalian', type:'date'},
+                    {key:'keperluan', label:'Keperluan / Keterangan', type:'textarea'}
+                ]
             }
         };
 
@@ -601,6 +725,8 @@
                                         <select className="input-modern" value={form[f.key]||''} onChange={e=>setForm({...form,[f.key]:e.target.value})}>
                                             <option value="">Pilih...</option>{f.options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
                                         </select>
+                                    ) : f.type === 'textarea' ? (
+                                        <textarea className="input-modern" rows="4" value={form[f.key]||''} onChange={e=>setForm({...form,[f.key]:e.target.value})}></textarea>
                                     ) : <input className="input-modern" type={f.type||'text'} value={form[f.key]||''} onChange={e=>setForm({...form,[f.key]:e.target.value})} required/>}
                                 </div>
                             ))}
@@ -619,7 +745,125 @@
             );
         };
 
-        const ChatView = ({ context, config }) => {
+        
+        const StudentLoanView = ({ db, user, onAdd }) => {
+            const [form, setForm] = useState(() => {
+                const baseId = user?.email ? user.email.split('@')[0] : '';
+                return {
+                    nama_peminjam: user?.name || '',
+                    id_peminjam: baseId,
+                    lab_prodi: '',
+                    nama_alat: '',
+                    tanggal_pinjam: '',
+                    tanggal_rencana_kembali: '',
+                    keperluan: ''
+                };
+            });
+
+            const loans = db['Peminjaman Alat Laboratorium'] || [];
+            const myId = form.id_peminjam || (user?.email ? user.email.split('@')[0] : '');
+            const myLoans = loans.filter(l => String(l.id_peminjam||'') === String(myId||''));
+
+            const handleChange = (key, value) => {
+                setForm(prev => ({ ...prev, [key]: value }));
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (!form.nama_alat || !form.tanggal_pinjam || !form.tanggal_rencana_kembali) return;
+                onAdd({
+                    ...form,
+                    status: 'Dipinjam',
+                    tanggal_kembali: form.tanggal_kembali || '',
+                    disetujui_oleh: form.disetujui_oleh || ''
+                });
+                setForm(prev => ({
+                    ...prev,
+                    lab_prodi: '',
+                    nama_alat: '',
+                    tanggal_pinjam: '',
+                    tanggal_rencana_kembali: '',
+                    keperluan: ''
+                }));
+            };
+
+            return (
+                <div className="space-y-4 mt-8">
+                    <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Peminjaman Alat Laboratorium</h2>
+                    <p className="text-xs text-gray-500 mb-2">Mahasiswa hanya dapat menambah data peminjaman. Pengubahan status dan penghapusan dilakukan oleh dosen / admin.</p>
+                    <form onSubmit={handleSubmit} className="glass p-4 rounded-xl grid md:grid-cols-2 gap-4 shadow-md">
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Nama Peminjam</label>
+                            <input className="input-modern" value={form.nama_peminjam} onChange={e=>handleChange('nama_peminjam', e.target.value)} required />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">NIM / NIP</label>
+                            <input className="input-modern" value={form.id_peminjam} onChange={e=>handleChange('id_peminjam', e.target.value)} required />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Lab / Prodi</label>
+                            <input className="input-modern" value={form.lab_prodi} onChange={e=>handleChange('lab_prodi', e.target.value)} required />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Nama Alat</label>
+                            <input className="input-modern" value={form.nama_alat} onChange={e=>handleChange('nama_alat', e.target.value)} required />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Tanggal Pinjam</label>
+                            <input type="date" className="input-modern" value={form.tanggal_pinjam} onChange={e=>handleChange('tanggal_pinjam', e.target.value)} required />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Rencana Pengembalian</label>
+                            <input type="date" className="input-modern" value={form.tanggal_rencana_kembali} onChange={e=>handleChange('tanggal_rencana_kembali', e.target.value)} required />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Keperluan</label>
+                            <textarea className="input-modern" value={form.keperluan} onChange={e=>handleChange('keperluan', e.target.value)} />
+                        </div>
+                        <div className="md:col-span-2 flex justify-end">
+                            <button type="submit" className="btn-sky px-6 py-2 flex items-center gap-2">
+                                <Icon path={PATHS.Plus}/> Simpan Peminjaman
+                            </button>
+                        </div>
+                    </form>
+
+                    <div className="glass rounded-2xl overflow-x-auto touch-scroll shadow-md border border-white/50">
+                        <table className="w-full text-sm text-left">
+                            <thead className="bg-white/50 text-gray-600 text-xs uppercase tracking-wide">
+                                <tr>
+                                    <th className="px-4 py-3">Tgl Pinjam</th>
+                                    <th className="px-4 py-3">Nama Alat</th>
+                                    <th className="px-4 py-3">Lab / Prodi</th>
+                                    <th className="px-4 py-3">Status</th>
+                                    <th className="px-4 py-3">Rencana Kembali</th>
+                                    <th className="px-4 py-3">Tgl Kembali</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/20">
+                                {myLoans.map((row, idx) => (
+                                    <tr key={idx} className="hover:bg-white/40 transition">
+                                        <td className="px-4 py-3">{row.tanggal_pinjam}</td>
+                                        <td className="px-4 py-3">{row.nama_alat}</td>
+                                        <td className="px-4 py-3">{row.lab_prodi}</td>
+                                        <td className="px-4 py-3">{row.status}</td>
+                                        <td className="px-4 py-3">{row.tanggal_rencana_kembali}</td>
+                                        <td className="px-4 py-3">{row.tanggal_kembali}</td>
+                                    </tr>
+                                ))}
+                                {myLoans.length === 0 && (
+                                    <tr>
+                                        <td colSpan="6" className="px-4 py-6 text-center text-gray-400 font-medium">
+                                            Belum ada data peminjaman yang tercatat.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+const ChatView = ({ context, config }) => {
             const [msgs, setMsgs] = useState([{role:'system', text:`Halo! Saya Inotna. Ada yang bisa dibantu?`}]);
             const [txt, setTxt] = useState("");
             const [loading, setLoading] = useState(false);
@@ -722,10 +966,10 @@
                                         </button>
                                     )}
                                     <div className={`p-4 rounded-2xl text-[15px] leading-relaxed shadow-sm backdrop-blur-md overflow-hidden ${
-                                        m.role==='user'
-                                        ? 'bg-gradient-to-br from-cyan-500/80 to-blue-600/80 text-white rounded-br-none border border-white/20'
-                                        : 'bg-white/60 text-gray-800 rounded-bl-none border border-white/40'
-                                    }`}>
+                                    m.role==='user'
+                                    ? 'bg-gradient-to-br from-cyan-500/80 to-blue-600/80 text-white rounded-br-none border border-white/20'
+                                    : 'bg-white/60 text-gray-800 rounded-bl-none border border-white/40'
+                                }`}>
                                         <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(marked.parse(m.text))}}/>
                                     </div>
                                 </div>
@@ -759,6 +1003,294 @@
                             </button>
                         </form>
                     </div>
+                </div>
+            );
+        };
+
+        // --- NEW VIEW: ANNOUNCEMENT ---
+        const AnnouncementView = ({ db, userRole, onAdd, onDel, onClear, onImp }) => {
+            const [selectedCategory, setSelectedCategory] = useState('Semua');
+            const [selectedPriority, setSelectedPriority] = useState('Semua');
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+            
+            // Filter announcements based on selected filters
+            const filteredAnnouncements = db['Pengumuman']?.filter(announcement => {
+                const categoryMatch = selectedCategory === 'Semua' || announcement.kategori === selectedCategory;
+                const priorityMatch = selectedPriority === 'Semua' || announcement.prioritas === selectedPriority;
+                const searchMatch = searchTerm === '' || 
+                    announcement.judul.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    announcement.konten.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    announcement.pengirim.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                return categoryMatch && priorityMatch && searchMatch;
+            }) || [];
+            
+            // Sort announcements by date (newest first) and priority
+            const sortedAnnouncements = [...filteredAnnouncements].sort((a, b) => {
+                // First sort by priority
+                const priorityOrder = { 'penting': 0, 'normal': 1, 'info': 2 };
+                if (priorityOrder[a.prioritas] !== priorityOrder[b.prioritas]) {
+                    return priorityOrder[a.prioritas] - priorityOrder[b.prioritas];
+                }
+                // Then sort by date
+                return new Date(b.tanggal) - new Date(a.tanggal);
+            });
+            
+            // Get unique categories for filter
+            const categories = ['Semua', ...new Set(db['Pengumuman']?.map(a => a.kategori) || [])];
+            const priorities = ['Semua', 'penting', 'normal', 'info'];
+            
+            return (
+                <div className="max-w-6xl mx-auto space-y-6 pb-24 animate-fade-in">
+                    <div className="glass p-8 rounded-[2rem] shadow-xl">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                                    <Icon path={PATHS.Bell} size={32}/>
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-gray-800">Pengumuman</h2>
+                                    <p className="text-sm text-gray-500">Informasi terbaru dari Fakultas Ilmu Kesehatan dan Psikologi</p>
+                                </div>
+                            </div>
+                            
+                            {(userRole === 'tendik' || userRole === 'superadmin') && (
+                                <button onClick={() => setSelectedAnnouncement({})} className="btn-sky px-6 py-3 rounded-xl shadow-lg shadow-blue-500/30 flex items-center gap-2 font-bold">
+                                    <Icon path={PATHS.Plus} size={20}/> Buat Pengumuman
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {/* Filters */}
+                    <div className="glass p-6 rounded-[2rem] shadow-lg">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="flex-1">
+                                <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Cari Pengumuman</label>
+                                <div className="relative">
+                                    <Icon path={PATHS.Search} className="absolute left-3 top-2.5 text-gray-400"/>
+                                    <input 
+                                        className="input-modern pl-10" 
+                                        placeholder="Kata kunci..." 
+                                        value={searchTerm} 
+                                        onChange={e=>setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="md:w-48">
+                                <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Kategori</label>
+                                <select 
+                                    className="input-modern" 
+                                    value={selectedCategory} 
+                                    onChange={e=>setSelectedCategory(e.target.value)}
+                                >
+                                    {categories.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="md:w-48">
+                                <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Prioritas</label>
+                                <select 
+                                    className="input-modern" 
+                                    value={selectedPriority} 
+                                    onChange={e=>setSelectedPriority(e.target.value)}
+                                >
+                                    {priorities.map(pri => (
+                                        <option key={pri} value={pri}>{pri === 'Semua' ? 'Semua Prioritas' : pri.charAt(0).toUpperCase() + pri.slice(1)}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Announcements List */}
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {sortedAnnouncements.length > 0 ? (
+                            sortedAnnouncements.map(announcement => (
+                                <div 
+                                    key={announcement.id} 
+                                    className={`glass p-6 rounded-2xl shadow-lg announcement-card cursor-pointer ${
+                                        announcement.prioritas === 'penting' ? 'announcement-urgent' : 
+                                        announcement.prioritas === 'normal' ? 'announcement-important' : 
+                                        'announcement-info'
+                                    }`}
+                                    onClick={() => setSelectedAnnouncement(announcement)}
+                                >
+                                    <div className="flex justify-between items-start mb-3">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                            announcement.kategori === 'Akademik' ? 'bg-blue-100 text-blue-700' :
+                                            announcement.kategori === 'Kemahasiswaan' ? 'bg-purple-100 text-purple-700' :
+                                            announcement.kategori === 'Umum' ? 'bg-gray-100 text-gray-700' :
+                                            announcement.kategori === 'Beasiswa' ? 'bg-green-100 text-green-700' :
+                                            'bg-yellow-100 text-yellow-700'
+                                        }`}>
+                                            {announcement.kategori}
+                                        </span>
+                                        {announcement.prioritas === 'penting' && (
+                                            <span className="text-red-500">
+                                                <Icon path={PATHS.Warn} size={16} />
+                                            </span>
+                                        )}
+                                    </div>
+                                    <h3 className="font-bold text-lg text-gray-800 mb-2">{announcement.judul}</h3>
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{announcement.konten}</p>
+                                    <div className="flex justify-between items-center text-xs text-gray-500">
+                                        <span>{new Date(announcement.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                        <span>{announcement.pengirim}</span>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center py-10 text-gray-400">
+                                <Icon path={PATHS.Bell} size={48} className="mx-auto mb-4 opacity-20"/>
+                                <p>Tidak ada pengumuman yang sesuai dengan filter yang dipilih.</p>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Announcement Detail Modal */}
+                    {selectedAnnouncement && selectedAnnouncement.id && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={(e) => e.target === e.currentTarget && setSelectedAnnouncement(null)}>
+                            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl transform transition-all scale-100">
+                                <div className="p-6 border-b border-gray-100">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-gray-800 mb-2">{selectedAnnouncement.judul}</h2>
+                                            <div className="flex gap-2 items-center">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                    selectedAnnouncement.kategori === 'Akademik' ? 'bg-blue-100 text-blue-700' :
+                                                    selectedAnnouncement.kategori === 'Kemahasiswaan' ? 'bg-purple-100 text-purple-700' :
+                                                    selectedAnnouncement.kategori === 'Umum' ? 'bg-gray-100 text-gray-700' :
+                                                    selectedAnnouncement.kategori === 'Beasiswa' ? 'bg-green-100 text-green-700' :
+                                                    'bg-yellow-100 text-yellow-700'
+                                                }`}>
+                                                    {selectedAnnouncement.kategori}
+                                                </span>
+                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                    selectedAnnouncement.prioritas === 'penting' ? 'bg-red-100 text-red-700' :
+                                                    selectedAnnouncement.prioritas === 'normal' ? 'bg-blue-100 text-blue-700' :
+                                                    'bg-green-100 text-green-700'
+                                                }`}>
+                                                    {selectedAnnouncement.prioritas.charAt(0).toUpperCase() + selectedAnnouncement.prioritas.slice(1)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setSelectedAnnouncement(null)} className="text-gray-400 hover:text-gray-600">
+                                            <Icon path={PATHS.X} size={24}/>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="p-6">
+                                    <div className="prose max-w-none">
+                                        <p className="text-gray-700 whitespace-pre-wrap">{selectedAnnouncement.konten}</p>
+                                    </div>
+                                    <div className="mt-6 pt-6 border-t border-gray-100 flex justify-between text-sm text-gray-500">
+                                        <span>Tanggal: {new Date(selectedAnnouncement.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                        <span>Pengirim: {selectedAnnouncement.pengirim}</span>
+                                    </div>
+                                </div>
+                                {(userRole === 'tendik' || userRole === 'superadmin') && (
+                                    <div className="p-6 pt-0 flex justify-end gap-2">
+                                        <button 
+                                            onClick={() => {
+                                                if (confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) {
+                                                    onDel(selectedAnnouncement.id);
+                                                    setSelectedAnnouncement(null);
+                                                }
+                                            }}
+                                            className="px-4 py-2 bg-red-50 text-red-600 rounded-xl font-medium hover:bg-red-100 transition-colors flex items-center gap-2"
+                                        >
+                                            <Icon path={PATHS.Trash} size={16}/> Hapus
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Add/Edit Announcement Form Modal */}
+                    {selectedAnnouncement !== null && !selectedAnnouncement.id && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={(e) => e.target === e.currentTarget && setSelectedAnnouncement(null)}>
+                            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[80vh] overflow-y-auto shadow-2xl transform transition-all scale-100">
+                                <div className="p-6 border-b border-gray-100">
+                                    <div className="flex justify-between items-center">
+                                        <h2 className="text-2xl font-bold text-gray-800">Buat Pengumuman Baru</h2>
+                                        <button onClick={() => setSelectedAnnouncement(null)} className="text-gray-400 hover:text-gray-600">
+                                            <Icon path={PATHS.X} size={24}/>
+                                        </button>
+                                    </div>
+                                </div>
+                                <form 
+                                    className="p-6"
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        const formData = new FormData(e.target);
+                                        const newAnnouncement = {
+                                            judul: formData.get('judul'),
+                                            kategori: formData.get('kategori'),
+                                            prioritas: formData.get('prioritas'),
+                                            konten: formData.get('konten'),
+                                            tanggal: formData.get('tanggal'),
+                                            pengirim: formData.get('pengirim')
+                                        };
+                                        onAdd(newAnnouncement);
+                                        setSelectedAnnouncement(null);
+                                    }}
+                                >
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="lbl">Judul Pengumuman</label>
+                                            <input name="judul" className="input-modern" required />
+                                        </div>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="lbl">Kategori</label>
+                                                <select name="kategori" className="input-modern" required>
+                                                    <option value="Akademik">Akademik</option>
+                                                    <option value="Kemahasiswaan">Kemahasiswaan</option>
+                                                    <option value="Umum">Umum</option>
+                                                    <option value="Beasiswa">Beasiswa</option>
+                                                    <option value="Lomba">Lomba</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="lbl">Prioritas</label>
+                                                <select name="prioritas" className="input-modern" required>
+                                                    <option value="normal">Normal</option>
+                                                    <option value="penting">Penting</option>
+                                                    <option value="info">Info</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="lbl">Isi Pengumuman</label>
+                                            <textarea name="konten" rows="6" className="input-modern" required></textarea>
+                                        </div>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="lbl">Tanggal</label>
+                                                <input name="tanggal" type="date" className="input-modern" required defaultValue={new Date().toISOString().split('T')[0]} />
+                                            </div>
+                                            <div>
+                                                <label className="lbl">Pengirim</label>
+                                                <input name="pengirim" className="input-modern" required defaultValue={userRole === 'tendik' || userRole === 'superadmin' ? 'Admin FIKPsi' : ''} />
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end gap-2 pt-4">
+                                            <button type="button" onClick={() => setSelectedAnnouncement(null)} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+                                                Batal
+                                            </button>
+                                            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors">
+                                                Simpan Pengumuman
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
@@ -901,7 +1433,7 @@
 
             const UNITS = [
                 { label: 'Fakultas', code: 'F' }, // Code hidden from logic if not used in string, assumed static part handles general scope
-                { label: 'Program Studi Ilmu Kesehatan Masyarakat', code: 'IKM' },
+                { label: 'Ilmu Kesehatan', code: 'IKM' },
                 { label: 'Psikologi', code: 'PSI' },
                 { label: 'Magister Kesehatan Masyarakat', code: 'MKM' }
             ];
@@ -1585,7 +2117,7 @@
                                     />
                                 </div>
                                 <h1 className="text-2xl md:text-3xl font-extrabold text-gray-800 mb-2 tracking-tight leading-tight">{config.appName}</h1>
-                                <p className="text-gray-500 font-medium text-sm md:text-base">Intelligent Research Hub</p>
+                                <p className="text-gray-500 font-medium text-sm md:text-base">Fakultas Ilmu Kesehatan dan Psikologi</p>
                             </div>
 
                             <form onSubmit={handleLogin} className="space-y-4 animate-fade-in text-left">
@@ -1748,14 +2280,17 @@
                                 <>
                                     <button onClick={()=>{setPage('akademik');setMenuOpen(false)}} className={`nav-btn ${page==='akademik'?'active':''}`}><Icon path={PATHS.AcademicCap}/> Akademik</button>
                                     <button onClick={()=>{setPage('surat');setMenuOpen(false)}} className={`nav-btn ${page==='surat'?'active':''}`}><Icon path={PATHS.Mail}/> Pesan Surat</button>
+                                    <button onClick={()=>{setPage('alat-laboratorium');setMenuOpen(false)}} className={`nav-btn ${page==='alat-laboratorium'?'active':''}`}><Icon path={PATHS.Briefcase}/> Alat Laboratorium</button>
                                     <button onClick={()=>{setPage('peminatan');setMenuOpen(false)}} className={`nav-btn ${page==='peminatan'?'active':''}`}><Icon path={PATHS.Check}/> Pilih Peminatan</button>
                                 </>
                             )}
 
                             {/* Menu Dosen, Mahasiswa, Tendik */}
                             <button onClick={()=>{setPage('konsultasi');setMenuOpen(false)}} className={`nav-btn ${page==='konsultasi'?'active':''}`}><Icon path={PATHS.ChatAlt}/> Konsultasi Online</button>
+                            <button onClick={()=>{setPage('alat-laboratorium');setMenuOpen(false)}} className={`nav-btn ${page==='alat-laboratorium'?'active':''}`}><Icon path={PATHS.Briefcase}/> Alat Laboratorium</button>
                             
                             {/* Menu Umum */}
+                            <button onClick={()=>{setPage('pengumuman');setMenuOpen(false)}} className={`nav-btn ${page==='pengumuman'?'active':''}`}><Icon path={PATHS.Bell}/> Pengumuman</button>
                             <button onClick={()=>{setPage('akreditasi');setMenuOpen(false)}} className={`nav-btn ${page==='akreditasi'?'active':''}`}><Icon path={PATHS.Award}/> Akreditasi</button>
 
                             {/* MENU BARU PBL & PKM (SEMUA USER) */}
@@ -1778,6 +2313,7 @@
                             {/* Menu Admin Khusus */}
                             {(userRole === 'tendik' || userRole === 'superadmin') && <>
                                 <button onClick={()=>{setPage('arsip-surat');setMenuOpen(false)}} className={`nav-btn ${page==='arsip-surat'?'active':''}`}><Icon path={PATHS.Archive}/> Arsip Surat</button>
+                                <button onClick={()=>{setPage('alat-laboratorium');setMenuOpen(false)}} className={`nav-btn ${page==='alat-laboratorium'?'active':''}`}><Icon path={PATHS.Briefcase}/> Alat Laboratorium</button>
                                 {/* NEW: GENERATOR NOMOR SURAT */}
                                 <button onClick={()=>{setPage('generator-surat');setMenuOpen(false)}} className={`nav-btn ${page==='generator-surat'?'active':''}`}><Icon path={PATHS.Calculator}/> Generator No Surat</button>
                                 <button onClick={()=>{setPage('peminatan');setMenuOpen(false)}} className={`nav-btn ${page==='peminatan'?'active':''}`}><Icon path={PATHS.Check}/> Setting Peminatan</button>
@@ -1821,6 +2357,7 @@
                                          page === 'konsultasi' ? 'KONSULTASI ONLINE' :
                                          page === 'surat' ? 'LAYANAN SURAT' :
                                          page === 'akademik' ? 'KARTU RENCANA STUDI' :
+                                         page === 'pengumuman' ? 'PENGUMUMAN' :
                                          page === 'pbl1' ? 'PRAKTIKUM BELAJAR LAPANGAN 1' :
                                          page === 'pbl2' ? 'PRAKTIKUM BELAJAR LAPANGAN 2' :
                                          page === 'pkm' ? 'PROGRAM PKM INSTITUSI' :
@@ -1830,6 +2367,7 @@
                                          page === 'arsip-surat' ? 'ARSIP SURAT' :
                                          page === 'akreditasi' ? 'ARSIP AKREDITASI' :
                                          page === 'generator-surat' ? 'GENERATOR NOMOR SURAT' :
+                                         page === 'alat-laboratorium' ? 'ALAT LABORATORIUM' :
                                          page.toUpperCase()}
                                     </h1>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden md:block mt-0.5">Academic System</p>
@@ -1848,6 +2386,51 @@
                                 {page==='konsultasi' && <ConsultationView db={db} user={user} onUpdateDb={handleUpdateDb} />}
                                 {page==='akademik' && <StudentAcademicView db={db} user={user} onUpdateDb={handleUpdateDb} />}
                                 {page==='surat' && <LetterView db={db} userRole={userRole} />}
+
+                                
+                                {page==='alat-laboratorium' && (
+                                    <>
+                                        <GenericTable
+                                            title="Alat Laboratorium"
+                                            data={db['Alat Laboratorium']||[]}
+                                            columns={TABLE_CONFIG['Alat Laboratorium'].columns}
+                                            formConfig={TABLE_CONFIG['Alat Laboratorium'].form}
+                                            onAdd={(d)=>add('Alat Laboratorium', d)}
+                                            onDel={(id)=>del('Alat Laboratorium', id)}
+                                            onClear={()=>clear('Alat Laboratorium')}
+                                            onImp={(d)=>imp('Alat Laboratorium', d)}
+                                            isLocked={userRole === 'mhs'}
+                                        />
+                                        {userRole === 'mhs' ? (
+                                            <StudentLoanView
+                                                db={db}
+                                                user={user}
+                                                onAdd={(d)=>add('Peminjaman Alat Laboratorium', d)}
+                                            />
+                                        ) : (
+                                            <GenericTable
+                                                title="Peminjaman Alat Laboratorium"
+                                                data={db['Peminjaman Alat Laboratorium']||[]}
+                                                columns={TABLE_CONFIG['Peminjaman Alat Laboratorium'].columns}
+                                                formConfig={TABLE_CONFIG['Peminjaman Alat Laboratorium'].form}
+                                                onAdd={(d)=>add('Peminjaman Alat Laboratorium', d)}
+                                                onDel={(id)=>del('Peminjaman Alat Laboratorium', id)}
+                                                onClear={()=>clear('Peminjaman Alat Laboratorium')}
+                                                onImp={(d)=>imp('Peminjaman Alat Laboratorium', d)}
+                                                isLocked={false}
+                                            />
+                                        )}
+                                    </>
+                                )}
+
+                                        onDel={(id)=>del('Alat Laboratorium', id)}
+                                        onClear={()=>clear('Alat Laboratorium')}
+                                        onImp={(d)=>imp('Alat Laboratorium', d)}
+                                        isLocked={false}
+                                    />
+                                )}                                
+                                {/* New Announcement Page */}
+                                {page==='pengumuman' && <AnnouncementView db={db} userRole={userRole} onAdd={(d)=>add('Pengumuman',d)} onDel={(id)=>del('Pengumuman',id)} onClear={()=>clear('Pengumuman')} onImp={(d)=>imp('Pengumuman',d)} />}
                                 
                                 {/* New Program Pages */}
                                 {page==='pbl1' && <ProgramView title="Praktikum Belajar Lapangan 1" sheetName="Data PBL 1" linkKey="PBL 1" db={db} user={user} onUpdateDb={handleUpdateDb} onAdd={(d)=>add('Data PBL 1',d)} onDel={(id)=>del('Data PBL 1',id)} onClear={()=>clear('Data PBL 1')} onImp={(d)=>imp('Data PBL 1',d)} />}
@@ -1892,5 +2475,4 @@
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
-
 </html>
