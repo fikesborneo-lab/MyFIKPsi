@@ -112,7 +112,56 @@
             color: #1f2937;
             border-radius: 18px 18px 18px 4px;
         }
-    </style>
+    
+        /* Dark mode slate theme overrides */
+        .dark-mode {
+            background-color: #020617;
+            color: #e5e7eb;
+        }
+        .dark-mode .text-gray-800,
+        .dark-mode .text-slate-800 {
+            color: #e5e7eb;
+        }
+        .dark-mode .text-gray-700,
+        .dark-mode .text-gray-600 {
+            color: #d1d5db;
+        }
+        .dark-mode .text-gray-500,
+        .dark-mode .text-gray-400 {
+            color: #9ca3af;
+        }
+        .dark-mode .bg-white {
+            background-color: #0f172a;
+        }
+        .dark-mode .bg-gray-50,
+        .dark-mode .bg-gray-100,
+        .dark-mode .bg-gray-200 {
+            background-color: #020617;
+        }
+        .dark-mode .glass,
+        .dark-mode .card {
+            background-color: rgba(15,23,42,0.9) !important;
+            border-color: rgba(51,65,85,0.9) !important;
+        }
+        .dark-mode input,
+        .dark-mode select,
+        .dark-mode textarea {
+            background-color: #020617;
+            color: #e5e7eb;
+            border-color: #475569;
+        }
+        .dark-mode input::placeholder,
+        .dark-mode textarea::placeholder {
+            color: #6b7280;
+        }
+        .dark-mode .nav-btn {
+            color: #e5e7eb;
+        }
+        .dark-mode .nav-btn.active {
+            background: linear-gradient(to right, #0ea5e9, #6366f1);
+            color: #0b1220;
+        }
+</style>
 </head>
 <body class="antialiased text-slate-800">
     <div id="root"></div>
@@ -2561,6 +2610,18 @@ const App = () => {
                 }
             })();
             const [theme, setTheme] = useStickyState(defaultTheme, 'fikpsi_theme_mode_v1');
+            useEffect(() => {
+                try {
+                    const body = document.body;
+                    if (!body) return;
+                    if (theme === 'dark') {
+                        body.classList.add('dark-mode');
+                    } else {
+                        body.classList.remove('dark-mode');
+                    }
+                } catch (e) {}
+            }, [theme]);
+
 const activeUserKey = useMemo(() => {
                 if (!user) return 'guest';
                 const id = user.NPM || user.NIDN || user.email || user.name || 'anon';
