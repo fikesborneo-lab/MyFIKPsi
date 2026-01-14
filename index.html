@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <title>MyFIKPsi - By Inotna</title>
+    <title>MyFIKPsi - By FIKPsi.AI</title>
     
     <!-- React Core -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -171,7 +171,7 @@
         };
 
         // --- SECURITY: PASSWORD OBFUSCATION ---
-        const AUTH_TOKEN = "dGFnYXJpeWVuaW5vdG5h"; // tagariyeninotna
+        const AUTH_TOKEN = "dGFnYXJpeWVuaW5vdG5h"; // tagariyenFIKPsi.AI
         
         // --- GAMBAR PERMANEN ---
         const DEFAULT_LOGO = "https://drive.google.com/thumbnail?id=1Tgb9hkf2E27XR3Vx9xTsHWz9f-W99l_2&sz=s500"; 
@@ -446,6 +446,7 @@
                 columns: [
                     {key:'nama', label:'Nama Alat'},
                     {key:'kode', label:'Kode Inventaris'},
+                    {key:'tahun', label:'Tahun Pengadaan'},
                     {key:'lokasi', label:'Lokasi'},
                     {key:'kondisi', label:'Kondisi'},
                     {key:'keterangan', label:'Keterangan'}
@@ -453,6 +454,7 @@
                 form: [
                     {key:'nama', label:'Nama Alat'},
                     {key:'kode', label:'Kode Inventaris'},
+                    {key:'tahun', label:'Tahun Pengadaan', type:'number'},
                     {key:'lokasi', label:'Lokasi Penyimpanan / Ruang'},
                     {key:'kondisi', label:'Kondisi (Baik/Rusak/Rusak Ringan)'},
                     {key:'keterangan', label:'Keterangan Tambahan'}
@@ -520,20 +522,20 @@
                     if(isOnline) await fetch(scriptUrl, { method: 'POST', body: JSON.stringify({ action: 'add', sheet: key, data: newItem }) });
                 },
                 del: async (key, id) => {
-                    setLocalData(p => ({...p, [key]: p[key].filter(x => x.id !== id)}));
+                    setLocalData(p => ({...p, [key]: (p[key] || []).filter(x => x.id !== id)}));
                     if(isOnline) await fetch(scriptUrl, { method: 'POST', body: JSON.stringify({ action: 'del', sheet: key, id: id }) });
                 },
                 update: async (key, id, newData) => {
-                    setLocalData(p => ({...p, [key]: p[key].map(x => x.id === id ? { ...x, ...newData } : x)}));
+                    setLocalData(p => ({...p, [key]: (p[key] || []).map(x => x.id === id ? { ...x, ...newData } : x)}));
                 },
                 clear: async (key) => {
-                    if(confirm("Hapus semua?")) {
+                    if(confirm("Hapus semua data di tabel ini?")) {
                         setLocalData(p => ({...p, [key]: []}));
                         if(isOnline) await fetch(scriptUrl, { method: 'POST', body: JSON.stringify({ action: 'clear', sheet: key }) });
                     }
                 },
                 import: async (key, data) => {
-                    const cleanData = data.map(x=>({id:Date.now()+Math.random(),...x}));
+                    const cleanData = (Array.isArray(data) ? data : []).map(x=>({id:Date.now()+Math.random(),...x}));
                     setLocalData(p => ({...p, [key]: [...(p[key]||[]), ...cleanData]}));
                     if(isOnline) {
                         for(let item of cleanData) await fetch(scriptUrl, { method: 'POST', body: JSON.stringify({ action: 'add', sheet: key, data: item }) });
@@ -548,7 +550,7 @@
         
         const buildAIInstruction = (prompt, contextSummary) => {
             return [
-                "Kamu adalah Inotna, asisten akademik digital Fakultas Ilmu Kesehatan dan Psikologi (FIKPsi).",
+                "Kamu adalah FIKPsi.AI, asisten akademik digital Fakultas Ilmu Kesehatan dan Psikologi (FIKPsi).",
                 "Jawab selalu dalam bahasa Indonesia yang mudah dipahami mahasiswa, ringkas tetapi jelas.",
                 "Jika pertanyaan terkait peminatan / konsentrasi:",
                 "- Minta konfirmasi dulu data mahasiswa (semester, mata kuliah yang disukai, nilai yang kuat, minat karier).",
@@ -659,7 +661,7 @@
                         messages: [
                             {
                                 role: "system",
-                                content: "Kamu adalah Inotna, asisten akademik FIKPsi. Gunakan konteks internal aplikasi untuk membantu mahasiswa dan dosen."
+                                content: "Kamu adalah FIKPsi.AI, asisten akademik FIKPsi. Gunakan konteks internal aplikasi untuk membantu mahasiswa dan dosen."
                             },
                             { role: "user", content: finalPrompt }
                         ],
@@ -688,7 +690,7 @@
                     },
                     body: JSON.stringify({
                         message: finalPrompt,
-                        preamble: "Kamu adalah Inotna, asisten akademik FIKPsi. Jawab singkat, terstruktur, dan praktis untuk membantu pengguna.",
+                        preamble: "Kamu adalah FIKPsi.AI, asisten akademik FIKPsi. Jawab singkat, terstruktur, dan praktis untuk membantu pengguna.",
                         temperature: 0.4
                     })
                 });
@@ -710,7 +712,7 @@
                             "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
-                            inputs: `<s>[INST] Kamu adalah Inotna, asisten akademik FIKPsi. Jawab dalam bahasa Indonesia.\n${finalPrompt} [/INST]`,
+                            inputs: `<s>[INST] Kamu adalah FIKPsi.AI, asisten akademik FIKPsi. Jawab dalam bahasa Indonesia.\n${finalPrompt} [/INST]`,
                             parameters: { max_new_tokens: 500, temperature: 0.4 }
                         })
                     }
@@ -776,81 +778,352 @@
             );
         };
 
+        
         const GenericTable = ({ title, data, columns, formConfig, onAdd, onDel, onClear, onImp, isLocked }) => {
             const [isOpen, setIsOpen] = useState(false);
             const [form, setForm] = useState({});
             const [search, setSearch] = useState("");
-            const filtered = data.filter(d => Object.values(d).some(v => String(v).toLowerCase().includes(search.toLowerCase())));
-            
+            const [yearFilter, setYearFilter] = useState("all");
+
+            // Deteksi kolom tahun secara otomatis (key atau label mengandung 'tahun' / 'year')
+            const yearKey = useMemo(() => {
+                if (!Array.isArray(columns)) return null;
+
+                // fallback khusus untuk beberapa tabel tertentu yang tidak punya kolom 'Tahun' eksplisit
+                if (typeof title === "string") {
+                    const t = title.toLowerCase();
+
+                    // Arsip MoU: gunakan kolom tanggal mulai / akhir sebagai sumber tahun
+                    if (t.includes("arsip mou")) {
+                        const col = columns.find(c => c && (c.key === "Tgl_Mulai" || c.key === "Tgl_Akhir"));
+                        if (col && col.key) return col.key;
+                    }
+
+                    // Arsip Surat: gunakan kolom tanggal
+                    if (t.includes("arsip surat")) {
+                        const col = columns.find(c => c && c.key === "Tanggal");
+                        if (col && col.key) return col.key;
+                    }
+                }
+
+                const byExact = columns.find(c => {
+                    if (!c || !c.key) return false;
+                    const k = String(c.key).toLowerCase();
+                    return (
+                        k === "year" ||
+                        k === "tahun" ||
+                        k === "tahun_akademik" ||
+                        k === "tahunajaran" ||
+                        k === "tahun_ajaran"
+                    );
+                });
+                if (byExact) return byExact.key;
+
+                const byLabel = columns.find(c => {
+                    const label = (c && c.label) ? String(c.label).toLowerCase() : "";
+                    return label.includes("tahun") || label.includes("year");
+                });
+                return byLabel ? byLabel.key : null;
+            }, [columns, title]);
+
+            const extractYear = (raw) => {
+                if (!raw) return null;
+                if (raw instanceof Date && !isNaN(raw.getTime())) {
+                    return String(raw.getFullYear());
+                }
+                if (typeof raw === "number") {
+                    const n = raw;
+                    if (n >= 1900 && n <= 2100) return String(n);
+                }
+                const s = String(raw);
+                // cari pola tahun 19xx / 20xx
+                const m = s.match(/(19\\d{2}|20\\d{2})/);
+                return m ? m[1] : null;
+            };
+
+            const yearOptions = useMemo(() => {
+                if (!yearKey) return [];
+
+                // Jika kolomnya Tahun_Akademik, gunakan nilai penuh (misal "2023/2024")
+                if (yearKey === 'Tahun_Akademik') {
+                    const setTA = new Set();
+                    (data || []).forEach((row) => {
+                        if (!row) return;
+                        const raw = row[yearKey];
+                        if (!raw) return;
+                        setTA.add(String(raw));
+                    });
+                    return Array.from(setTA).sort();
+                }
+
+                // Default: ambil tahun 4 digit dari kolom tahun / tanggal
+                const years = new Set();
+                (data || []).forEach((row) => {
+                    if (!row) return;
+                    const y = extractYear(row[yearKey]);
+                    if (y) years.add(y);
+                });
+                return Array.from(years).sort();
+            }, [data, yearKey]);
+
             const handleExcel = (e) => {
-                const f = e.target.files[0]; if(!f) return;
+                const f = e.target.files[0];
+                if (!f) return;
                 const r = new FileReader();
                 r.onload = (evt) => {
-                    const wb = XLSX.read(evt.target.result, {type:'array'});
-                    onImp(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+                    try {
+                        const wb = XLSX.read(evt.target.result, { type: "array" });
+                        const sheet = wb.Sheets[wb.SheetNames[0]];
+                        const rows = XLSX.utils.sheet_to_json(sheet);
+                        if (typeof onImp === "function") {
+                            onImp(rows);
+                        }
+                    } catch (err) {
+                        console.error("Gagal membaca file Excel", err);
+                        alert("File Excel tidak dapat dibaca. Pastikan format sudah sesuai.");
+                    }
                 };
                 r.readAsArrayBuffer(f);
             };
 
             const handleDownloadTemplate = () => {
+                if (!Array.isArray(formConfig)) return;
                 const sampleRow = {};
-                formConfig.forEach(f => { sampleRow[f.key] = ""; });
+                formConfig.forEach(f => {
+                    if (!f || !f.key) return;
+                    sampleRow[f.key] = "";
+                });
                 const wb = XLSX.utils.book_new();
                 const ws = XLSX.utils.json_to_sheet([sampleRow]);
                 XLSX.utils.book_append_sheet(wb, ws, "Template");
-                XLSX.writeFile(wb, `Format_Import_${title.replace(/\s+/g, '_')}.xlsx`);
+                XLSX.writeFile(wb, `Format_Import_${String(title || "").replace(/\\s+/g, "_")}.xlsx`);
             };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (typeof onAdd === "function") {
+                    onAdd(form);
+                    setForm({});
+                    setIsOpen(false);
+                }
+            };
+
+            const filtered = useMemo(() => {
+                const term = search.toLowerCase();
+                return (data || []).filter((row) => {
+                    if (!row) return false;
+
+                    // filter search (semua kolom)
+                    const matchSearch =
+                        !term ||
+                        Object.values(row).some((v) =>
+                            String(v ?? "").toLowerCase().includes(term)
+                        );
+                    if (!matchSearch) return false;
+
+                    // filter tahun
+                    if (!yearKey || yearFilter === "all") return true;
+
+                    // Jika kolomnya Tahun_Akademik, cocokkan langsung string Tahun Akademik
+                    if (yearKey === 'Tahun_Akademik') {
+                        const raw = row[yearKey];
+                        if (!raw) return false;
+                        return String(raw) === String(yearFilter);
+                    }
+
+                    // Default: ekstrak tahun 4 digit dari kolom tahun / tanggal
+                    const rowYear = extractYear(row[yearKey]);
+                    if (!rowYear) return false;
+                    return String(rowYear) === String(yearFilter);
+                });
+            }, [data, search, yearFilter, yearKey]);
+
+            const hasActions = !!onDel && !isLocked;
 
             return (
                 <div className="space-y-4 pb-20 animate-fade-in">
                     <div className="flex flex-col md:flex-row justify-between gap-4">
                         <h2 className="text-2xl font-bold text-gray-800 tracking-tight">{title}</h2>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             {!isLocked && (
                                 <>
-                                    <button onClick={handleDownloadTemplate} className="btn-white text-green-600 shadow-sm border border-green-100 hover:bg-green-50 transition-colors">
-                                        <Icon path={PATHS.Download}/> Unduh Format
+                                    <button
+                                        type="button"
+                                        onClick={handleDownloadTemplate}
+                                        className="btn-white text-green-600 border-green-100 hover:bg-green-50"
+                                    >
+                                        <Icon path={PATHS.Download} size={16} /> Unduh Format
                                     </button>
-                                    <label className="btn-white cursor-pointer hover:bg-gray-50"><Icon path={PATHS.Upload}/> Import <input type="file" hidden onChange={handleExcel} accept=".xlsx, .xls" /></label>
-                                    <button onClick={onClear} className="btn-white text-red-500 hover:bg-red-50"><Icon path={PATHS.Trash}/></button>
-                                    <button onClick={()=>setIsOpen(!isOpen)} className="btn-sky"><Icon path={PATHS.Plus}/> {isOpen?'Tutup':'Tambah'}</button>
+                                    <label className="btn-white cursor-pointer">
+                                        <Icon path={PATHS.Upload} size={16} /> Import
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept=".xlsx,.xls"
+                                            onChange={handleExcel}
+                                        />
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={onClear}
+                                        className="btn-white text-red-500 hover:bg-red-50"
+                                    >
+                                        <Icon path={PATHS.Trash} size={16} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsOpen((prev) => !prev)}
+                                        className="btn-sky"
+                                    >
+                                        <Icon path={PATHS.Plus} size={16} /> {isOpen ? "Tutup" : "Tambah"}
+                                    </button>
                                 </>
                             )}
-                            <div className="relative"><Icon path={PATHS.Search} className="absolute left-3 top-2.5 text-gray-400"/><input className="input-modern pl-10" placeholder="Cari..." value={search} onChange={e=>setSearch(e.target.value)}/></div>
+
+                            <div className="flex items-center gap-2 w-full md:w-auto">
+                                <div className="relative flex-1 md:w-56">
+                                    <Icon
+                                        path={PATHS.Search}
+                                        className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                    />
+                                    <input
+                                        className="input-modern pl-9 text-sm"
+                                        placeholder="Cari..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                    />
+                                </div>
+
+                                {yearKey && (
+                                    <select
+                                        className="input-modern text-sm md:w-40"
+                                        value={yearFilter}
+                                        onChange={(e) => setYearFilter(e.target.value)}
+                                    >
+                                        <option value="all">Semua Tahun</option>
+                                        {yearOptions.map((y) => (
+                                            <option key={y} value={y}>
+                                                {y}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
                         </div>
                     </div>
-                    
+
                     {isOpen && !isLocked && (
-                        <form onSubmit={(e)=>{e.preventDefault(); onAdd(form); setForm({}); setIsOpen(false);}} className="glass p-6 rounded-2xl grid md:grid-cols-2 gap-4 shadow-lg">
-                            {formConfig.map(f => (
+                        <form
+                            onSubmit={handleSubmit}
+                            className="glass p-6 rounded-2xl grid md:grid-cols-2 gap-4 shadow-lg"
+                        >
+                            {(formConfig || []).map((f) => (
                                 <div key={f.key}>
-                                    <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">{f.label}</label>
-                                    {f.type==='select' ? (
-                                        <select className="input-modern" value={form[f.key]||''} onChange={e=>setForm({...form,[f.key]:e.target.value})}>
-                                            <option value="">Pilih...</option>{f.options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+                                    <label className="text-xs font-semibold text-gray-500 uppercase ml-1 mb-1 block">
+                                        {f.label}
+                                    </label>
+                                    {f.type === "select" ? (
+                                        <select
+                                            className="input-modern text-sm"
+                                            value={form[f.key] || ""}
+                                            onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                                        >
+                                            <option value="">Pilih {f.label}</option>
+                                            {(f.options || []).map((o) => (
+                                                <option key={o.value} value={o.value}>
+                                                    {o.label}
+                                                </option>
+                                            ))}
                                         </select>
-                                    ) : f.type === 'textarea' ? (
-                                        <textarea className="input-modern" rows="4" value={form[f.key]||''} onChange={e=>setForm({...form,[f.key]:e.target.value})}></textarea>
-                                    ) : <input className="input-modern" type={f.type||'text'} value={form[f.key]||''} onChange={e=>setForm({...form,[f.key]:e.target.value})} required/>}
+                                    ) : f.type === "textarea" ? (
+                                        <textarea
+                                            className="input-modern text-sm min-h-[80px]"
+                                            value={form[f.key] || ""}
+                                            onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                                        />
+                                    ) : (
+                                        <input
+                                            className="input-modern text-sm"
+                                            type={f.type || "text"}
+                                            value={form[f.key] || ""}
+                                            onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                                        />
+                                    )}
                                 </div>
                             ))}
-                            <button type="submit" className="md:col-span-2 btn-sky mt-2 justify-center py-3">Simpan Data</button>
+
+                            <div className="md:col-span-2 flex justify-end gap-2 mt-2">
+                                <button
+                                    type="button"
+                                    className="btn-white"
+                                    onClick={() => {
+                                        setIsOpen(false);
+                                        setForm({});
+                                    }}
+                                >
+                                    Batal
+                                </button>
+                                <button type="submit" disabled={offline || loading || !txt.trim()} className="btn-sky">
+                                    <Icon path={PATHS.Check} size={16} /> Simpan
+                                </button>
+                            </div>
                         </form>
                     )}
 
-                    <div className="glass rounded-2xl overflow-x-auto touch-scroll shadow-md border border-white/50">
+                    <div className="glass rounded-2xl overflow-x-auto touch-pan-x shadow-md border border-white/50">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-white/50 text-gray-500 text-xs uppercase border-b border-white/20"><tr>{columns.map(c=><th key={c.key} className="px-6 py-4">{c.label}</th>)}{!isLocked && <th className="px-6 py-4 text-center">Aksi</th>}</tr></thead>
-                            <tbody className="divide-y divide-white/20">{filtered.map(row=><tr key={row.id} className="hover:bg-white/40 transition-colors">{columns.map(c=><td key={c.key} className="px-6 py-4">{c.render ? c.render(row[c.key], row) : row[c.key]}</td>)}{!isLocked && <td className="px-6 py-4 text-center"><button onClick={()=>onDel(row.id)} className="text-red-500 hover:text-red-600 transition"><Icon path={PATHS.Trash}/></button></td>}</tr>)}</tbody>
+                            <thead className="bg-white/50 text-gray-600 text-xs uppercase">
+                                <tr>
+                                    {columns.map((col) => (
+                                        <th key={col.key || col.label} className="px-6 py-3 font-semibold">
+                                            {col.label}
+                                        </th>
+                                    ))}
+                                    {hasActions && (
+                                        <th className="px-6 py-3 text-center font-semibold">Aksi</th>
+                                    )}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/30">
+                                {filtered.map((row) => (
+                                    <tr key={row.id || JSON.stringify(row)} className="hover:bg-white/40 transition">
+                                        {columns.map((col) => {
+                                            const value = row[col.key];
+                                            let content = value ?? "-";
+                                            if (typeof col.render === "function") {
+                                                content = col.render(value, row);
+                                            }
+                                            return (
+                                                <td key={col.key || col.label} className="px-6 py-3 align-top">
+                                                    {content}
+                                                </td>
+                                            );
+                                        })}
+                                        {hasActions && (
+                                            <td className="px-6 py-3 text-center">
+                                                <button
+                                                    type="button"
+                                                    className="text-red-500 hover:text-red-600 transition"
+                                                    onClick={() => onDel && onDel(row.id)}
+                                                >
+                                                    <Icon path={PATHS.Trash} />
+                                                </button>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
                         </table>
-                        {filtered.length===0 && <div className="p-10 text-center text-gray-400 font-medium">Data tidak ditemukan</div>}
+                        {filtered.length === 0 && (
+                            <div className="py-10 text-center text-gray-400 font-medium">
+                                Data tidak ditemukan
+                            </div>
+                        )}
                     </div>
                 </div>
             );
         };
-
-        
-        const StudentLoanView = ({ db, user, onAdd }) => {
+const StudentLoanView = ({ db, user, onAdd }) => {
             const [form, setForm] = useState(() => {
                 const baseId = user?.email ? user.email.split('@')[0] : '';
                 return {
@@ -968,11 +1241,13 @@
             );
         };
 const ChatView = ({ context, config, onIncomingMessage }) => {
-            const [msgs, setMsgs] = useState([{role:'system', text:`Halo! Saya Inotna. Ada yang bisa dibantu?`}]);
+            const [msgs, setMsgs] = useState([{role:'system', text:`Halo! Saya FIKPsi.AI. Ada yang bisa dibantu?`}]);
             const [txt, setTxt] = useState("");
             const [loading, setLoading] = useState(false);
             const [listening, setListening] = useState(false);
             const [voices, setVoices] = useState([]); 
+            const [offline, setOffline] = useState(false);
+            const [aiError, setAiError] = useState("");
             const endRef = useRef(null);
             
             useEffect(() => endRef.current?.scrollIntoView({behavior:'smooth'}), [msgs]);
@@ -1007,25 +1282,55 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
             };
 
             const processInteraction = async (inputQuery) => {
-                const userMsg = { role:'user', text: inputQuery };
+                const trimmed = (inputQuery || "").trim();
+                if (!trimmed) return;
+
+                const userMsg = { role:'user', text: trimmed };
+
+                // Jika sudah mode offline, jangan panggil API lagi
+                if (offline) {
+                    const info = aiError || "FIKPsi.AI sedang dalam mode Offline (no-AI). Fitur chat AI tidak tersedia karena token/koneksi bermasalah. Menu lain seperti Jadwal, PBL, Skripsi, Surat, dan database tetap bisa digunakan.";
+                    setMsgs(p => [...p, userMsg, { role: 'system', text: info }]);
+                    return;
+                }
+
                 setMsgs(p => [...p, userMsg]); 
                 setLoading(true);
-                const ans = await callAI(inputQuery, context, config, null);
-                setMsgs(p => [...p, {role:'system', text:ans}]); 
-                if (onIncomingMessage && typeof onIncomingMessage === 'function') {
-                    onIncomingMessage({
-                        id: `chat-${Date.now()}`,
-                        type: 'chat',
-                        title: 'Chat baru dari Inotna',
-                        message: ans?.slice(0, 120) + (ans && ans.length > 120 ? '...' : ''),
-                        createdAt: new Date().toISOString()
-                    });
+                try {
+                    const ans = await callAI(trimmed, context, config, null);
+
+                    // Deteksi jawaban error global dari callAI dan aktifkan mode offline
+                    if (typeof ans === "string" && ans.startsWith("Maaf, semua koneksi AI sementara gagal")) {
+                        setOffline(true);
+                        setAiError(ans);
+                    }
+
+                    setMsgs(p => [...p, { role:'system', text: ans }]); 
+
+                    if (onIncomingMessage && typeof onIncomingMessage === 'function') {
+                        onIncomingMessage({
+                            id: `chat-${Date.now()}`,
+                            type: 'chat',
+                            title: 'Chat baru dari FIKPsi.AI',
+                            message: ans?.slice(0, 120) + (ans && ans.length > 120 ? '...' : ''),
+                            createdAt: new Date().toISOString()
+                        });
+                    }
+
+                    speak(ans);
+                } catch (err) {
+                    console.error(err);
+                    const failText = "Maaf, terjadi gangguan pada layanan AI. Sistem sekarang berjalan dalam mode Offline (no-AI). Semua menu database tetap dapat digunakan.";
+                    setOffline(true);
+                    setAiError(err?.message || "");
+                    setMsgs(p => [...p, { role:'system', text: failText }]);
+                } finally {
+                    setLoading(false);
                 }
-                setLoading(false);
-                speak(ans);
             };
 
-            const startListening = () => {
+            
+const startListening = () => {
                 if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                     alert("Browser tidak mendukung fitur suara.");
                     return;
@@ -1066,7 +1371,13 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
                             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                         </div>
                         <div>
-                            <h2 className="font-bold text-gray-800 text-lg">Inotna</h2>
+                            <h2 className="font-bold text-gray-800 text-lg">FIKPsi.AI</h2>
+                            {offline && (
+                                <div className="mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-[10px] md:text-xs text-amber-700">
+                                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                    <span>Mode Offline – Fitur AI nonaktif, menu lain tetap bisa digunakan.</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 touch-scroll">
@@ -1102,14 +1413,15 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
                     
                     <div className="p-3 md:p-4 bg-white/40 backdrop-blur-md shrink-0 safe-pb border-t border-white/20">
                         <form onSubmit={send} className="flex gap-2 md:gap-3 relative items-center">
-                             <button type="button" onClick={startListening} className={`p-3 md:p-4 rounded-2xl shadow-lg transition-all border border-white/20 flex-shrink-0 ${listening ? 'bg-red-500 text-white animate-pulse' : 'bg-white/70 text-gray-600 hover:bg-white'}`}>
+                             <button type="button" onClick={startListening} disabled={offline || loading} className={`p-3 md:p-4 rounded-2xl shadow-lg transition-all border border-white/20 flex-shrink-0 ${listening ? 'bg-red-500 text-white animate-pulse' : 'bg-white/70 text-gray-600 hover:bg-white'}`}>
                                 <Icon path={PATHS.Mic} size={20}/>
                             </button>
                             <input 
                                 className="flex-1 bg-white/70 border border-white/50 rounded-2xl px-4 py-3 md:px-5 md:py-4 shadow-sm focus:ring-2 focus:ring-sky-500/30 outline-none text-gray-800 placeholder-gray-500 backdrop-blur-sm input-modern" 
-                                placeholder={listening ? "Mendengarkan..." : "Ketik atau bicara..."} 
+                                placeholder={offline ? "Mode Offline – AI tidak tersedia. Gunakan menu lain di sidebar." : (listening ? "Mendengarkan..." : "Ketik atau bicara...")} 
                                 value={txt} 
                                 onChange={e=>setTxt(e.target.value)} 
+                                disabled={offline || loading} 
                             />
                             <button type="submit" className="bg-gradient-to-r from-cyan-500/90 to-blue-600/90 text-white p-3 md:p-4 rounded-2xl shadow-lg hover:scale-105 active:scale-95 transition-all backdrop-blur-sm border border-white/20 flex-shrink-0">
                                 <Icon path={PATHS.Send} size={20}/>
@@ -2347,7 +2659,7 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
             };
 
             const handleAdminLogin = () => {
-                if(btoa(adminPass) === AUTH_TOKEN) { // Pass: tagariyeninotna
+                if(btoa(adminPass) === AUTH_TOKEN) { // Pass: tagariyenFIKPsi.AI
                     onLogin({ name: 'Admin Utama', role: 'superadmin', email: 'admin@fikpsi.ac.id' }); // Changed role
                 } else {
                     alert("Akses Ditolak!");
@@ -2913,8 +3225,36 @@ const activeUserKey = useMemo(() => {
                         .nav-btn { width: 100%; display: flex; gap: 14px; padding: 14px 20px; border-radius: 16px; font-size: 14px; font-weight: 600; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); color: #64748b; }
                         .nav-btn:hover { background: rgba(255,255,255,0.6); color: #334155; transform: translateX(4px); }
                         .nav-btn.active { background: rgba(224, 242, 254, 0.5); color: #0284c7; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15); font-weight: 700; transform: translateX(4px); border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(8px); }
-                        .btn-white { background: white; padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 8px; transition: all 0.2s; border: 1px solid rgba(0,0,0,0.05); }
-                        .btn-sky { background: #0ea5e9; color: white; padding: 10px 18px; border-radius: 14px; font-size: 13px; font-weight: 700; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3); display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+                        .btn-white {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 8px;
+                            padding: 8px 14px;
+                            border-radius: 999px;
+                            font-size: 0.8rem;
+                            font-weight: 600;
+                            background: rgba(255,255,255,0.9);
+                            color: #0f172a;
+                            border: 1px solid rgba(15,23,42,0.08);
+                            box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+                            cursor: pointer;
+                            transition: all 0.18s ease-out;
+                        }
+                        .btn-sky {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 8px;
+                            padding: 8px 14px;
+                            border-radius: 999px;
+                            font-size: 0.8rem;
+                            font-weight: 600;
+                            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+                            color: #f9fafb;
+                            border: 1px solid rgba(56,189,248,0.6);
+                            box-shadow: 0 10px 25px rgba(56,189,248,0.35);
+                            cursor: pointer;
+                            transition: all 0.18s ease-out;
+                        }
                         .btn-white:active, .btn-sky:active { transform: scale(0.96); }
                         .lbl { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 6px; margin-left: 4px; letter-spacing: 0.05em; }
                     `}</style>
@@ -2924,32 +3264,85 @@ const activeUserKey = useMemo(() => {
 
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 
-        // Hapus teks onDel=onClear=onImp=isLocked yang mungkin muncul sebagai teks mentah di tampilan
-        window.addEventListener('load', () => {
-            try {
-                const targets = [
-                'onDel=onClear=onImp=isLocked',
-                'onDel=onClear=onImp=isLocked=/> )}',
-                'onDel=onClear=onImp=isLocked=/>',
-                'onDel=onClear=onImp=isLocked =/> )}'
-            ];
-                const walker = document.createTreeWalker(
-                    document.body,
-                    NodeFilter.SHOW_TEXT,
-                    null
-                );
-                const toClean = [];
-                let node;
-                while ((node = walker.nextNode())) {
-                    if (node.nodeValue && node.nodeValue.includes(target)) {
-                        toClean.push(node);
-                    }
-                }
-                toClean.forEach(n => { n.nodeValue = ''; });
-            } catch (e) {
-                console.error('cleanup text error', e);
+        </script>
+
+    <script>
+    (function() {
+      const base = ['onDel','onClear','onImp'].join('=');
+      const targets = [
+        base,
+        base + '=isLocked',
+        base + '=isLocked=/>',
+        base + '=isLocked=/> )',
+        base + '=isLocked=/> )}',
+        base + '=isLocked=/> )}}'
+      ];
+
+      function cleanNode(root) {
+        try {
+          if (!root) return;
+          const walker = document.createTreeWalker(
+            root,
+            NodeFilter.SHOW_TEXT,
+            null
+          );
+          let node;
+          while ((node = walker.nextNode())) {
+            if (!node.nodeValue) continue;
+            let text = node.nodeValue;
+            let changed = false;
+            for (const t of targets) {
+              if (text.includes(t)) {
+                text = text.split(t).join('');
+                changed = true;
+              }
             }
-        });
+            if (changed) {
+              node.nodeValue = text;
+            }
+          }
+        } catch (e) {
+          console.error('cleanup text error', e);
+        }
+      }
+
+      function initialClean() {
+        cleanNode(document.body);
+      }
+
+      window.addEventListener('load', () => {
+        // Bersihkan sekali saat halaman selesai dimuat
+        initialClean();
+
+        // Amati perubahan DOM supaya teks yang mengganggu ikut dihapus
+        if ('MutationObserver' in window) {
+          const observer = new MutationObserver((mutations) => {
+            for (const m of mutations) {
+              if (m.type === 'childList') {
+                m.addedNodes.forEach(node => {
+                  if (node.nodeType === Node.TEXT_NODE) {
+                    cleanNode(node.parentNode || document.body);
+                  } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    cleanNode(node);
+                  }
+                });
+              } else if (m.type === 'characterData') {
+                cleanNode(m.target.parentNode || document.body);
+              }
+            }
+          });
+
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            characterData: true
+          });
+        } else {
+          // Fallback untuk browser lama: interval berkala
+          setInterval(initialClean, 1000);
+        }
+      });
+    })();
     </script>
 </body>
 </html>
