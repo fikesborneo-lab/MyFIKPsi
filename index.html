@@ -1166,9 +1166,11 @@ const StudentLoanView = ({ db, user, onAdd }) => {
 
             return (
                 <div className="space-y-4 mt-8">
-                    <h2 className="text-2xl font-bold text-gray-800 tracking-tight">Peminjaman Alat Laboratorium</h2>
-                    <p className="text-xs text-gray-500 mb-2">Mahasiswa hanya dapat menambah data peminjaman. Pengubahan status dan penghapusan dilakukan oleh dosen / admin.</p>
-                    <form onSubmit={handleSubmit} className="glass p-4 rounded-xl grid md:grid-cols-2 gap-4 shadow-md">
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-800">Form Peminjaman Alat Laboratorium</h3>
+                        <p className="text-xs text-gray-500 mb-2">Mahasiswa hanya dapat menambah data peminjaman. Pengubahan status dan penghapusan dilakukan oleh dosen / admin.</p>
+                    </div>
+<form onSubmit={handleSubmit} className="glass p-4 rounded-xl grid md:grid-cols-2 gap-4 shadow-md">
                         <div>
                             <label className="text-xs font-bold text-gray-500 uppercase ml-1 mb-1 block">Nama Peminjam</label>
                             <input className="input-modern" value={form.nama_peminjam} onChange={e=>handleChange('nama_peminjam', e.target.value)} required />
@@ -1203,8 +1205,9 @@ const StudentLoanView = ({ db, user, onAdd }) => {
                             </button>
                         </div>
                     </form>
-
-                    <div className="glass rounded-2xl overflow-x-auto touch-scroll shadow-md border border-white/50">
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-700">Riwayat Peminjaman Saya</h3>
+<div className="glass rounded-2xl overflow-x-auto touch-scroll shadow-md border border-white/50">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-white/50 text-gray-600 text-xs uppercase tracking-wide">
                                 <tr>
@@ -1236,6 +1239,7 @@ const StudentLoanView = ({ db, user, onAdd }) => {
                                 )}
                             </tbody>
                         </table>
+                    </div>
                     </div>
                 </div>
             );
@@ -1831,11 +1835,12 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
             }, [existing]);
 
             const OPTIONS = [
-                'Psikologi Klinis',
-                'Psikologi Pendidikan',
-                'Psikologi Industri & Organisasi',
-                'Psikologi Sosial',
-                'Psikologi Umum / Riset'
+                'PKIP',
+                'KESLING',
+                'KESPRO',
+                'EPID',
+                'GIZI KESMAS',
+                'K3'
             ];
 
             const handleSubmit = (e) => {
@@ -2422,32 +2427,79 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
             const myRecord = db['Akademik Mahasiswa']?.find(r => r.email === user.email) || {};
             const [selectedPA, setSelectedPA] = useState(myRecord.pembimbing || '');
             const [status, setStatus] = useState(myRecord.status || 'Aktif');
-            
-            // Dummy state for specific course lists (Since we simulate generic structure, we parse JSON or use arrays)
-            const [mkGagal, setMkGagal] = useState([]); 
-            const [mkBelum, setMkBelum] = useState([]);
+
+            const mataKuliahList = db['Mata Kuliah'] || [];
+
+            const parseMkList = (raw) => {
+                if (!raw) return [];
+                try {
+                    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    console.warn('Gagal parse data MK akademik:', e);
+                    return [];
+                }
+            };
+
+            const [mkGagal, setMkGagal] = useState(parseMkList(myRecord.mk_tidak_lulus));
+            const [mkBelum, setMkBelum] = useState(parseMkList(myRecord.mk_tempuh));
+            const [selectedMkGagal, setSelectedMkGagal] = useState('');
+            const [selectedMkBelum, setSelectedMkBelum] = useState('');
 
             const handleSave = () => {
                 const newData = {
                     email: user.email,
                     pembimbing: selectedPA,
                     status: status,
-                    // In a real implementation we would save course lists too
+                    mk_tidak_lulus: JSON.stringify(mkGagal || []),
+                    mk_tempuh: JSON.stringify(mkBelum || []),
                 };
-                
+
                 if (myRecord.id) {
                     onUpdateDb('Akademik Mahasiswa', myRecord.id, newData);
                 } else {
-                    onUpdateDb('Akademik Mahasiswa', null, newData); // Add logic needed in crud
+                    onUpdateDb('Akademik Mahasiswa', null, newData);
                 }
-                alert("Data Akademik Tersimpan (Simulasi)");
+                alert("Data Akademik Tersimpan");
+            };
+
+            const handleAddMkGagal = () => {
+                if (!selectedMkGagal) return;
+                const mk = mataKuliahList.find(m => m.kode === selectedMkGagal);
+                if (!mk) return;
+                if (mkGagal.some(item => item.kode === mk.kode)) {
+                    alert('MK ini sudah ada di daftar MK Tidak Lulus.');
+                    return;
+                }
+                setMkGagal([...mkGagal, { kode: mk.kode, nama: mk.nama, sks: mk.sks, semester: mk.semester }]);
+            };
+
+            const handleRemoveMkGagal = (kode) => {
+                setMkGagal(mkGagal.filter(m => m.kode !== kode));
+            };
+
+            const handleAddMkBelum = () => {
+                if (!selectedMkBelum) return;
+                const mk = mataKuliahList.find(m => m.kode === selectedMkBelum);
+                if (!mk) return;
+                if (mkBelum.some(item => item.kode === mk.kode)) {
+                    alert('MK ini sudah ada di daftar MK Tempuh.');
+                    return;
+                }
+                setMkBelum([...mkBelum, { kode: mk.kode, nama: mk.nama, sks: mk.sks, semester: mk.semester }]);
+            };
+
+            const handleRemoveMkBelum = (kode) => {
+                setMkBelum(mkBelum.filter(m => m.kode !== kode));
             };
 
             return (
                 <div className="max-w-4xl mx-auto space-y-6 pb-24 animate-fade-in">
                     <div className="glass p-8 rounded-[2rem] shadow-xl">
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl"><Icon path={PATHS.AcademicCap} size={28}/></div>
+                            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                                <Icon path={PATHS.AcademicCap} size={28}/>
+                            </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-gray-800">Kartu Rencana Studi & Akademik</h2>
                                 <p className="text-sm text-gray-500">Kelola data akademik Anda di sini.</p>
@@ -2455,25 +2507,53 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="lbl">Status Mahasiswa</label>
-                                <select className="input-modern" value={status} onChange={e=>setStatus(e.target.value)}>
-                                    <option value="Aktif">Aktif</option>
-                                    <option value="Cuti">Cuti</option>
-                                    <option value="Tidak Aktif">Tidak Aktif</option>
-                                </select>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Dosen PA</label>
+                                    <select
+                                        className="w-full rounded-2xl border-gray-200 bg-white/70 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                        value={selectedPA}
+                                        onChange={e => setSelectedPA(e.target.value)}
+                                    >
+                                        <option value="">Pilih Dosen PA</option>
+                                        {db['Data Dosen']?.map((d, i) => (
+                                            <option key={i} value={d.Nama}>{d.Nama}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Status Akademik</label>
+                                    <select
+                                        className="w-full rounded-2xl border-gray-200 bg-white/70 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                        value={status}
+                                        onChange={e => setStatus(e.target.value)}
+                                    >
+                                        <option value="Aktif">Aktif</option>
+                                        <option value="Cuti">Cuti</option>
+                                        <option value="Drop Out">Drop Out</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label className="lbl">Pembimbing Akademik</label>
-                                <select className="input-modern" value={selectedPA} onChange={e=>setSelectedPA(e.target.value)}>
-                                    <option value="">Pilih Dosen PA...</option>
-                                    {db['Data Dosen']?.map(d => (
-                                        <option key={d.id} value={d.Nama}>{d.Nama}</option>
-                                    ))}
-                                </select>
+
+                            <div className="space-y-4">
+                                <div className="p-4 bg-indigo-50 rounded-2xl text-sm text-gray-700">
+                                    <p className="font-semibold mb-1">Catatan</p>
+                                    <ul className="list-disc pl-5 space-y-1 text-xs text-gray-600">
+                                        <li>Data MK Tidak Lulus diambil dari database Mata Kuliah.</li>
+                                        <li>Gunakan fitur tambah untuk memilih MK yang sesuai.</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                        <button onClick={handleSave} className="mt-4 btn-sky w-full justify-center">Simpan Data Utama</button>
+
+                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                            <button
+                                onClick={handleSave}
+                                className="btn-sky w-full sm:w-auto justify-center px-6 py-2 rounded-2xl"
+                            >
+                                Simpan Semua Data Akademik
+                            </button>
+                        </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
@@ -2481,36 +2561,62 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
                         <div className="glass p-6 rounded-[2rem] shadow-lg border-l-4 border-red-400">
                             <h3 className="font-bold text-gray-800 mb-4 flex justify-between items-center">
                                 <span>MK Tidak Lulus</span>
-                                <button className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg hover:bg-red-200">+ Tambah</button>
+                                <span className="text-xs text-red-500">Nilai D / E / tidak lulus</span>
                             </h3>
-                            <div className="space-y-2">
-                                <div className="p-3 bg-white/50 rounded-xl text-sm flex justify-between">
-                                    <span>PSI102 - Statistika Dasar</span>
-                                    <span className="text-red-500 font-bold">E</span>
-                                </div>
-                                <div className="text-center text-xs text-gray-400 mt-2">Belum ada data lain</div>
-                            </div>
-                        </div>
 
-                        {/* MK Belum Ditempuh */}
-                        <div className="glass p-6 rounded-[2rem] shadow-lg border-l-4 border-yellow-400">
-                            <h3 className="font-bold text-gray-800 mb-4 flex justify-between items-center">
-                                <span>MK Belum Ditempuh</span>
-                                <button className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-lg hover:bg-yellow-200">+ Tambah</button>
-                            </h3>
+                            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 mb-3">
+                                <select
+                                    className="flex-1 rounded-2xl border-gray-200 bg-white/70 px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                                    value={selectedMkGagal}
+                                    onChange={e => setSelectedMkGagal(e.target.value)}
+                                >
+                                    <option value="">Pilih Mata Kuliah</option>
+                                    {mataKuliahList.map(mk => (
+                                        <option key={mk.kode} value={mk.kode}>
+                                            {mk.kode} - {mk.nama} (Smt {mk.semester}, {mk.sks} SKS)
+                                        </option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="button"
+                                    onClick={handleAddMkGagal}
+                                    className="text-xs px-3 py-2 rounded-2xl bg-red-100 text-red-700 hover:bg-red-200 font-semibold"
+                                >
+                                    + Tambah
+                                </button>
+                            </div>
+
                             <div className="space-y-2">
-                                <div className="p-3 bg-white/50 rounded-xl text-sm text-gray-600">
-                                    PSI305 - Metodologi Penelitian
-                                </div>
-                                <div className="text-center text-xs text-gray-400 mt-2">Data dummy (Simulasi)</div>
+                                {mkGagal.map((mk) => (
+                                    <div
+                                        key={mk.kode}
+                                        className="p-3 bg-white/70 rounded-xl text-xs flex justify-between items-center"
+                                    >
+                                        <div>
+                                            <div className="font-semibold">{mk.kode} - {mk.nama}</div>
+                                            <div className="text-[10px] text-gray-500">Semester {mk.semester} • {mk.sks} SKS</div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveMkGagal(mk.kode)}
+                                            className="text-[10px] px-2 py-1 rounded-lg bg-red-50 text-red-500 hover:bg-red-100"
+                                        >
+                                            Hapus
+                                        </button>
+                                    </div>
+                                ))}
+                                {mkGagal.length === 0 && (
+                                    <div className="text-center text-xs text-gray-400 mt-2">Belum ada MK Tidak Lulus yang dicatat.</div>
+                                )}
                             </div>
                         </div>
                     </div>
+
                 </div>
             );
         };
 
-        // --- NEW VIEW: LETTER (PESAN SURAT) ---
+// --- NEW VIEW: LETTER (PESAN SURAT) ---
         const LetterView = ({ db, userRole, onAddLink }) => (
             <div className="max-w-4xl mx-auto space-y-6 pb-24 animate-fade-in">
                 <div className="glass p-8 rounded-[2rem] shadow-xl space-y-2">
@@ -3122,15 +3228,12 @@ const activeUserKey = useMemo(() => {
                                             onDel={(id)=>del('Alat Laboratorium', id)}
                                             onClear={()=>clear('Alat Laboratorium')}
                                             onImp={(d)=>imp('Alat Laboratorium', d)}
-                                            isLocked={userRole === 'mhs'}
+                                            // Hanya admin (tendik & superadmin) yang bisa menambah / mengedit / menghapus alat
+                                            isLocked={userRole !== 'tendik' && userRole !== 'superadmin'}
                                         />
-                                        {userRole === 'mhs' ? (
-                                            <StudentLoanView
-                                                db={db}
-                                                user={user}
-                                                onAdd={(d)=>add('Peminjaman Alat Laboratorium', d)}
-                                            />
-                                        ) : (
+
+                                        {(userRole === 'tendik' || userRole === 'superadmin') ? (
+                                            // ADMIN: bisa melihat & mengelola semua data peminjaman alat
                                             <GenericTable
                                                 title="Peminjaman Alat Laboratorium"
                                                 data={db['Peminjaman Alat Laboratorium']||[]}
@@ -3142,16 +3245,17 @@ const activeUserKey = useMemo(() => {
                                                 onImp={(d)=>imp('Peminjaman Alat Laboratorium', d)}
                                                 isLocked={false}
                                             />
+                                        ) : (
+                                            // NON-ADMIN (mahasiswa & dosen): hanya bisa melihat stok alat dan mengajukan peminjaman
+                                            <StudentLoanView
+                                                db={db}
+                                                user={user}
+                                                onAdd={(d)=>add('Peminjaman Alat Laboratorium', d)}
+                                            />
                                         )}
                                     </>
                                 )}
 
-                                        onDel={(id)=>del('Alat Laboratorium', id)}
-                                        onClear={()=>clear('Alat Laboratorium')}
-                                        onImp={(d)=>imp('Alat Laboratorium', d)}
-                                        isLocked={false}
-                                    />
-                                )}                                
                                 {/* New Announcement Page */}
                                 {page==='pengumuman' && <AnnouncementView db={db} userRole={userRole} onAdd={(d)=>add('Pengumuman',d)} onDel={(id)=>del('Pengumuman',id)} onClear={()=>clear('Pengumuman')} onImp={(d)=>imp('Pengumuman',d)} />}
                                 
