@@ -7,17 +7,17 @@
     <title>MyFIKPsi - By FIKPsi.AI</title>
     
     <!-- React Core -->
-    <script defer crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script defer crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <!-- Babel -->
-    <script defer src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Tailwind CSS -->
-    <script defer src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Libraries -->
-    <script defer src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- SECURITY: DOMPurify -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -199,12 +199,10 @@
 
         // --- INITIAL DATA SCHEMA ---
         const INITIAL_DB = {
-            'Tracking Dosen': [], // Tracking lokasi dosen (manual + face recognition)
-
             // DATA PENGGUNA DUMMY
             'Data Mahasiswa': [{ id: 1, Nama: "Mahasiswa Demo", NPM: "220101", Status: "Aktif", Password: "mhs" }],
             'Data Tendik': [{ id: 1, Nama: "Staf Akademik", NITK: "999001", Role: "Admin", Password: "admin" }],
-            'Data Dosen': [{ id: 1, Nama: "Prof. Andi", NIDN: "12345", Keahlian: "Klinis", S1: "UGM", S2: "UI", S3: "UNPAD", Penelitian: "Cyberpsychology", FotoWajah: "", Password: "12345", NoHP: "628123456789" }],
+            'Data Dosen': [{ id: 1, Nama: "Prof. Andi", NIDN: "12345", Keahlian: "Klinis", S1: "UGM", S2: "UI", S3: "UNPAD", Penelitian: "Cyberpsychology", Password: "12345", NoHP: "628123456789" }],
             
             // DATA APLIKASI
             'Jadwal Kuliah': [{ id: 1, Nama_Dosen: "Prof. Andi", Mata_Kuliah: "Psikologi Klinis", Hari: "Senin", Jam: "08:00", Ruang: "B201", Status: "Hadir" }],
@@ -256,33 +254,8 @@
         };
 
         const TABLE_CONFIG = {
-            'Tracking Dosen': { 
-                columns: [
-                    { key: 'nama', label: 'Nama Dosen' },
-                    { key: 'nidn', label: 'NIDN' },
-                    { key: 'status_lokasi', label: 'Lokasi' },
-                    { key: 'tanggal', label: 'Tanggal' },
-                    { key: 'jam', label: 'Jam' },
-                    { key: 'metode', label: 'Metode Input' },
-                    { key: 'catatan', label: 'Catatan' },
-                ],
-                form: [
-                    { key: 'nama', label: 'Nama Dosen' },
-                    { key: 'nidn', label: 'NIDN' },
-                    {
-                        key: 'status_lokasi',
-                        label: 'Status Lokasi',
-                        type: 'select',
-                        options: [
-                            { value: 'Di Akademik', label: 'Di Akademik' },
-                            { value: 'Di Luar', label: 'Di Luar' },
-                        ],
-                    },
-                    { key: 'catatan', label: 'Catatan', type: 'textarea' },
-                ],
-            },
             'Jadwal Kuliah': { columns: [{key:'Nama_Dosen',label:'Dosen'},{key:'Mata_Kuliah',label:'Matkul'},{key:'Hari',label:'Hari'},{key:'Jam',label:'Jam'},{key:'Ruang',label:'Ruang'},{key:'Status',label:'Status'}], form: [{key:'Nama_Dosen',label:'Nama Dosen'},{key:'Mata_Kuliah',label:'Mata Kuliah'},{key:'Hari',label:'Hari',type:'select',options:['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'].map(d=>({value:d,label:d}))},{key:'Jam',label:'Jam'},{key:'Ruang',label:'Ruang'},{key:'Status',label:'Status',type:'select',options:[{value:'Hadir',label:'Hadir'},{value:'Tidak Ada',label:'Tidak Ada'}]}] },
-            'Data Dosen': { columns: [{key:'Nama',label:'Nama'},{key:'NIDN',label:'NIDN'},{key:'Keahlian',label:'Bidang'},{key:'FotoWajah',label:'Foto Wajah', render: (val) => val ? (<img src={convertGDriveLink(val)} className="w-10 h-10 rounded-full object-cover border border-white/60 shadow-sm" referrerPolicy="no-referrer" onError={(e)=>{e.target.onerror=null; e.target.src=DEFAULT_AVATAR}}/>) : (<span className="text-xs text-gray-400 italic">Belum ada</span>) }], form: [{key:'Nama',label:'Nama Lengkap'},{key:'NIDN',label:'NIDN'},{key:'Keahlian',label:'Bidang Keahlian'},{key:'Penelitian',label:'Judul Penelitian'},{key:'FotoWajah',label:'Link Foto Wajah (URL GDrive/Web)'},{key:'Password', label:'Password Login'},{key:'NoHP', label:'No HP (Whatsapp)'}] },
+            'Data Dosen': { columns: [{key:'Nama',label:'Nama'},{key:'NIDN',label:'NIDN'},{key:'Keahlian',label:'Bidang'}], form: [{key:'Nama',label:'Nama Lengkap'},{key:'NIDN',label:'NIDN'},{key:'Keahlian',label:'Bidang Keahlian'},{key:'Penelitian',label:'Judul Penelitian'}, {key:'Password', label:'Password Login'}, {key:'NoHP', label:'No HP (Whatsapp)'}] },
             'Data Mahasiswa': { columns: [{key:'Nama',label:'Nama'},{key:'NPM',label:'NPM'},{key:'Status',label:'Status'}], form: [{key:'Nama',label:'Nama Lengkap'},{key:'NPM',label:'NPM'},{key:'Status',label:'Status'}, {key:'Password', label:'Password Login'}, {key:'NoHP', label:'No HP (Whatsapp)'}] },
             'Data Tendik': { columns: [{key:'Nama',label:'Nama'},{key:'NITK',label:'NITK'}], form: [{key:'Nama',label:'Nama Lengkap'},{key:'NITK',label:'NITK'}, {key:'Password', label:'Password Login'}] },
             'Kegiatan Mahasiswa': { columns: [{key:'Nama_Kegiatan',label:'Kegiatan'},{key:'Tanggal',label:'Tanggal'},{key:'Lokasi',label:'Tempat'}], form: [{key:'Nama_Kegiatan',label:'Nama Acara'},{key:'Tanggal',label:'Tanggal',type:'date'},{key:'Waktu',label:'Waktu'},{key:'Lokasi',label:'Lokasi'}] },
@@ -1271,360 +1244,6 @@ const StudentLoanView = ({ db, user, onAdd }) => {
                 </div>
             );
         };
-// --- Tracking Dosen View (Manual + Face Recognition Webcam) ---
-
-const DosenTracking = ({ data = [], daftarDosen = [], onAddManual, onAddAuto }) => {
-    const videoRef = useRef(null);
-    const canvasRef = useRef(null);
-    const [isCameraOn, setIsCameraOn] = useState(false);
-    const [stream, setStream] = useState(null);
-    const [manualForm, setManualForm] = useState({
-        nama: '',
-        nidn: '',
-        status_lokasi: 'Di Akademik',
-        catatan: '',
-    });
-    const [isSavingAuto, setIsSavingAuto] = useState(false);
-    const [lastAutoMessage, setLastAutoMessage] = useState('');
-
-    // Helper: cari dosen dari Data Dosen berdasarkan NIDN / Nama
-    const findDosenByNidn = (nidn) => {
-        if (!nidn) return null;
-        const trimmed = String(nidn).trim();
-        return (daftarDosen || []).find((d) => String(d.NIDN || '').trim() === trimmed) || null;
-    };
-
-    const findDosenByNama = (nama) => {
-        if (!nama) return null;
-        const lower = String(nama).trim().toLowerCase();
-        return (daftarDosen || []).find(
-            (d) => String(d.Nama || '').trim().toLowerCase() === lower
-        ) || null;
-    };
-
-    const startCamera = async () => {
-        try {
-            const mediaStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user' },
-            });
-            if (videoRef.current) {
-                videoRef.current.srcObject = mediaStream;
-            }
-            setStream(mediaStream);
-            setIsCameraOn(true);
-        } catch (err) {
-            console.error('Tidak bisa mengakses kamera:', err);
-            alert('Gagal mengakses kamera. Pastikan izin kamera sudah diberikan.');
-        }
-    };
-
-    const stopCamera = () => {
-        if (stream) {
-            stream.getTracks().forEach((t) => t.stop());
-        }
-        setStream(null);
-        setIsCameraOn(false);
-    };
-
-    useEffect(() => {
-        return () => {
-            if (stream) stream.getTracks().forEach((t) => t.stop());
-        };
-    }, [stream]);
-
-    const captureFrame = async () => {
-        if (!videoRef.current || !canvasRef.current) return;
-
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const dataUrl = canvas.toDataURL('image/jpeg');
-
-        setIsSavingAuto(true);
-        try {
-            const result = await recognizeFaceDummy(dataUrl);
-            if (!result) {
-                alert('Wajah tidak terdeteksi / tidak dikenali.');
-                return;
-            }
-
-            const now = new Date();
-            const payload = {
-                nama: result.nama,
-                nidn: result.nidn,
-                status_lokasi: 'Di Akademik',
-                metode: 'Face Recognition',
-                waktu: now.toISOString(),
-                tanggal: now.toLocaleDateString('id-ID'),
-                jam: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-                catatan: 'Tercatat otomatis dari kamera (demo).',
-            }
-
-            if (typeof onAddAuto === 'function') {
-                await onAddAuto(payload);
-            }
-
-            setLastAutoMessage(
-                `Tersimpan: ${payload.nama} (${payload.nidn}) sebagai "${payload.status_lokasi}"`
-            );
-        } catch (err) {
-            console.error('Gagal menyimpan data otomatis:', err);
-            alert('Terjadi kesalahan saat proses pengenalan wajah.');
-        } finally {
-            setIsSavingAuto(false);
-        }
-    };
-
-    // Dummy recognizer (ganti dengan API face recognition backend Anda)
-    const recognizeFaceDummy = async (_imageDataUrl) => {
-        await new Promise((res) => setTimeout(res, 500));
-
-        // Demo: minta NIDN terlebih dahulu, lalu cocokkan dengan Data Dosen
-        const nidnInput = window.prompt('Masukkan NIDN dosen yang terdeteksi (demo):', '12345');
-        if (!nidnInput) return null;
-
-        const dosenByNidn = findDosenByNidn(nidnInput);
-        if (dosenByNidn) {
-            return { nama: dosenByNidn.Nama, nidn: dosenByNidn.NIDN };
-        }
-
-        const namaInput = window.prompt('Nama dosen tersebut?', 'Prof. Andi');
-        if (!namaInput) return null;
-
-        return { nama: namaInput, nidn: nidnInput };
-    };
-
-    const handleManualSubmit = (e) => {
-        e.preventDefault();
-
-        let nama = manualForm.nama;
-        let nidn = manualForm.nidn;
-
-        const byNidn = nidn ? findDosenByNidn(nidn) : null;
-        const byNama = nama ? findDosenByNama(nama) : null;
-
-        if (!byNidn && byNama && !nidn) {
-            nidn = byNama.NIDN || nidn;
-        }
-
-        if (!byNidn && !byNama && (daftarDosen || []).length > 0) {
-            const ok = window.confirm(
-                'Nama/NIDN tidak ditemukan di Data Dosen. Tetap simpan status tracking ini?'
-            );
-            if (!ok) return;
-        }
-
-        const now = new Date();
-        const payload = {
-            ...manualForm,
-            nama,
-            nidn,
-            metode: 'Manual Admin',
-            waktu: now.toISOString(),
-            tanggal: now.toLocaleDateString('id-ID'),
-            jam: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-        }
-        if (typeof onAddManual === 'function') {
-            onAddManual(payload);
-        }
-        setManualForm({ nama: '', nidn: '', status_lokasi: 'Di Akademik', catatan: '' });
-    };
-
-    const totalDiAkademik = data.filter((d) => d.status_lokasi === 'Di Akademik').length;
-    const totalDiLuar = data.filter((d) => d.status_lokasi === 'Di Luar').length;
-
-    const selectedDosen =
-        findDosenByNidn(manualForm.nidn) || findDosenByNama(manualForm.nama);
-
-    return (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="glass rounded-2xl p-4 flex flex-col gap-1">
-                    <span className="text-xs font-semibold text-slate-500">Dosen di Akademik</span>
-                    <span className="text-2xl font-extrabold text-emerald-600">{totalDiAkademik}</span>
-                </div>
-                <div className="glass rounded-2xl p-4 flex flex-col gap-1">
-                    <span className="text-xs font-semibold text-slate-500">Dosen di Luar</span>
-                    <span className="text-2xl font-extrabold text-rose-500">{totalDiLuar}</span>
-                </div>
-                <div className="glass rounded-2xl p-4 flex flex-col gap-1">
-                    <span className="text-xs font-semibold text-slate-500">Total Dosen Tercatat</span>
-                    <span className="text-2xl font-extrabold text-sky-600">{data.length}</span>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="glass rounded-2xl p-5 space-y-4">
-                    <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                        Input Manual (Admin)
-                    </h3>
-                    <form onSubmit={handleManualSubmit} className="space-y-3">
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-slate-500">Nama Dosen</label>
-                            <select
-                                className="input-modern"
-                                value={manualForm.nidn}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    const dosen = findDosenByNidn(val);
-                                    setManualForm((f) => ({
-                                        ...f,
-                                        nidn: val,
-                                        nama: dosen ? dosen.Nama : f.nama,
-                                    }));
-                                }}
-                                required
-                            >
-                                <option value="">Pilih Dosen...</option>
-                                {(daftarDosen || []).map((d) => (
-                                    <option key={d.id || d.NIDN} value={d.NIDN}>
-                                        {d.Nama} ({d.NIDN})
-                                    </option>
-                                ))}
-                            </select>
-                            <p className="text-[11px] text-slate-400 mt-1">
-                                Sumber data dari menu <strong>Data Dosen</strong>. Tambahkan/ubah di sana jika
-                                dosen belum muncul.
-                            </p>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-slate-500">NIDN</label>
-                            <input
-                                type="text"
-                                className="input-modern"
-                                value={manualForm.nidn}
-                                onChange={(e) =>
-                                    setManualForm((f) => ({ ...f, nidn: e.target.value }))
-                                }
-                                placeholder="Otomatis terisi saat memilih dosen, bisa disesuaikan bila perlu"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-slate-500">Status Lokasi</label>
-                            <select
-                                className="input-modern"
-                                value={manualForm.status_lokasi}
-                                onChange={(e) =>
-                                    setManualForm((f) => ({ ...f, status_lokasi: e.target.value }))
-                                }
-                            >
-                                <option value="Di Akademik">Di Akademik</option>
-                                <option value="Di Luar">Di Luar</option>
-                            </select>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-slate-500">Catatan</label>
-                            <textarea
-                                className="input-modern min-h-[60px]"
-                                value={manualForm.catatan}
-                                onChange={(e) =>
-                                    setManualForm((f) => ({ ...f, catatan: e.target.value }))
-                                }
-                            />
-                        </div>
-
-                        {selectedDosen && (
-                            <div className="flex items-center gap-3 text-xs text-slate-500 bg-slate-50/80 rounded-2xl px-3 py-2 mt-1">
-                                <img
-                                    src={convertGDriveLink(selectedDosen.FotoWajah || '')}
-                                    referrerPolicy="no-referrer"
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = DEFAULT_AVATAR;
-                                    }}
-                                    className="w-8 h-8 rounded-full object-cover border border-white/60 shadow-sm"
-                                />
-                                <div className="flex flex-col">
-                                    <span className="font-semibold text-slate-700">{selectedDosen.Nama}</span>
-                                    <span className="font-mono text-[11px] text-slate-500">
-                                        NIDN: {selectedDosen.NIDN}
-                                    </span>
-                                    <span className="text-[11px]">
-                                        Status foto:{' '}
-                                        {selectedDosen.FotoWajah
-                                            ? 'SUDAH TERISI (siap untuk Face Recognition)'
-                                            : 'BELUM TERISI – lengkapi di menu Data Dosen'}
-                                    </span>
-                                </div>
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            className="w-full rounded-2xl py-2.5 text-sm font-semibold bg-sky-500 text-white hover:bg-sky-600 transition shadow"
-                        >
-                            Simpan Status Manual
-                        </button>
-                    </form>
-                </div>
-
-                <div className="glass rounded-2xl p-5 space-y-4">
-                    <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-sm font-bold text-slate-700">Input Otomatis (Face Recognition)</h3>
-                        <div className="flex gap-2">
-                            {!isCameraOn ? (
-                                <button
-                                    type="button"
-                                    onClick={startCamera}
-                                    className="px-3 py-1.5 text-xs rounded-full bg-emerald-500 text-white font-semibold"
-                                >
-                                    Nyalakan Kamera
-                                </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={stopCamera}
-                                    className="px-3 py-1.5 text-xs rounded-full bg-rose-500 text-white font-semibold"
-                                >
-                                    Matikan Kamera
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="rounded-2xl overflow-hidden bg-black/80 aspect-video flex items-center justify-center">
-                        <video
-                            ref={videoRef}
-                            autoPlay
-                            playsInline
-                            className="w-full h-full object-contain"
-                        />
-                    </div>
-
-                    <canvas ref={canvasRef} className="hidden" />
-
-                    <button
-                        type="button"
-                        disabled={!isCameraOn || isSavingAuto}
-                        onClick={captureFrame}
-                        className="w-full rounded-2xl py-2.5 text-sm font-semibold bg-sky-500 text-white hover:bg-sky-600 disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                        {isSavingAuto ? 'Menyimpan...' : 'Capture & Simpan Otomatis'}
-                    </button>
-
-                    {lastAutoMessage && (
-                        <p className="text-[11px] text-emerald-600 font-medium mt-1">
-                            {lastAutoMessage}
-                        </p>
-                    )}
-
-                    <p className="text-[11px] text-slate-500 mt-1">
-                        Catatan: untuk produksi, ganti fungsi <code>recognizeFaceDummy()</code> dengan
-                        pemanggilan API face recognition di server (misal di pintu masuk ruang akademik).
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-
 const ChatView = ({ context, config, onIncomingMessage }) => {
             const [msgs, setMsgs] = useState([{role:'system', text:`Halo! Saya FIKPsi.AI. Ada yang bisa dibantu?`}]);
             const [txt, setTxt] = useState("");
@@ -1876,50 +1495,84 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
                         </div>
                     </div>
                     
-                    {/* Announcements List */}
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Announcements List – versi clean */}
+                    <div className="space-y-4">
                         {sortedAnnouncements.length > 0 ? (
-                            sortedAnnouncements.map(announcement => (
-                                <div 
-                                    key={announcement.id} 
-                                    className={`glass p-6 rounded-2xl shadow-lg announcement-card cursor-pointer ${
-                                        announcement.prioritas === 'penting' ? 'announcement-urgent' : 
-                                        announcement.prioritas === 'normal' ? 'announcement-important' : 
-                                        'announcement-info'
-                                    }`}
-                                    onClick={() => setSelectedAnnouncement(announcement)}
-                                >
-                                    <div className="flex justify-between items-start mb-3">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            announcement.kategori === 'Akademik' ? 'bg-blue-100 text-blue-700' :
-                                            announcement.kategori === 'Kemahasiswaan' ? 'bg-purple-100 text-purple-700' :
-                                            announcement.kategori === 'Umum' ? 'bg-gray-100 text-gray-700' :
-                                            announcement.kategori === 'Beasiswa' ? 'bg-green-100 text-green-700' :
-                                            'bg-yellow-100 text-yellow-700'
-                                        }`}>
-                                            {announcement.kategori}
-                                        </span>
-                                        {announcement.prioritas === 'penting' && (
-                                            <span className="text-red-500">
-                                                <Icon path={PATHS.Warn} size={16} />
+                            sortedAnnouncements.map(announcement => {
+                                const tanggalLabel = new Date(announcement.tanggal).toLocaleDateString(
+                                    'id-ID',
+                                    { day: 'numeric', month: 'long', year: 'numeric' }
+                                );
+
+                                const priorityLabel = announcement.prioritas
+                                    ? announcement.prioritas.charAt(0).toUpperCase() + announcement.prioritas.slice(1)
+                                    : 'Normal';
+
+                                return (
+                                    <button
+                                        key={announcement.id}
+                                        type="button"
+                                        onClick={() => setSelectedAnnouncement(announcement)}
+                                        className="w-full text-left bg-white rounded-2xl border border-gray-100 px-4 py-4 md:px-6 md:py-5 shadow-sm hover:shadow-md hover:border-sky-200 transition-all focus:outline-none focus:ring-2 focus:ring-sky-300/60"
+                                    >
+                                        {/* Baris atas: tanggal & kategori */}
+                                        <div className="flex items-center justify-between gap-3 mb-2">
+                                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                                                <span>{tanggalLabel}</span>
+                                                {announcement.kategori && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                                                            {announcement.kategori}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            {/* Prioritas kecil di kanan */}
+                                            {announcement.prioritas && (
+                                                <span
+                                                    className={
+                                                        "px-2 py-0.5 rounded-full text-[11px] font-medium " +
+                                                        (announcement.prioritas === 'penting'
+                                                            ? "bg-red-50 text-red-600 border border-red-100"
+                                                            : announcement.prioritas === 'info'
+                                                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                                                            : "bg-blue-50 text-blue-600 border border-blue-100")
+                                                    }
+                                                >
+                                                    {priorityLabel}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Judul */}
+                                        <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-1 line-clamp-2">
+                                            {announcement.judul}
+                                        </h3>
+
+                                        {/* Isi singkat */}
+                                        <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+                                            {announcement.konten}
+                                        </p>
+
+                                        {/* Pengirim */}
+                                        <div className="flex justify-between items-center text-xs text-gray-400">
+                                            <span>
+                                                {announcement.pengirim ? `Oleh ${announcement.pengirim}` : 'Pengirim tidak tercantum'}
                                             </span>
-                                        )}
-                                    </div>
-                                    <h3 className="font-bold text-lg text-gray-800 mb-2">{announcement.judul}</h3>
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">{announcement.konten}</p>
-                                    <div className="flex justify-between items-center text-xs text-gray-500">
-                                        <span>{new Date(announcement.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                                        <span>{announcement.pengirim}</span>
-                                    </div>
-                                </div>
-                            ))
+                                        </div>
+                                    </button>
+                                );
+                            })
                         ) : (
-                            <div className="col-span-full text-center py-10 text-gray-400">
-                                <Icon path={PATHS.Bell} size={48} className="mx-auto mb-4 opacity-20"/>
-                                <p>Tidak ada pengumuman yang sesuai dengan filter yang dipilih.</p>
+                            <div className="text-center py-10 text-gray-400 border border-dashed border-gray-200 rounded-2xl bg-white/60">
+                                <Icon path={PATHS.Bell} size={40} className="mx-auto mb-3 opacity-30" />
+                                <p className="text-sm">Belum ada pengumuman yang bisa ditampilkan.</p>
                             </div>
                         )}
                     </div>
+
                     
                     {/* Announcement Detail Modal */}
                     {selectedAnnouncement && selectedAnnouncement.id && (
@@ -2808,7 +2461,6 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
             const myRecord = db['Akademik Mahasiswa']?.find(r => r.email === user.email) || {};
             const [selectedPA, setSelectedPA] = useState(myRecord.pembimbing || '');
             const [status, setStatus] = useState(myRecord.status || 'Aktif');
-            const [tahunAkademik, setTahunAkademik] = useState(myRecord.tahun_akademik || '');
 
             const mataKuliahList = db['Mata Kuliah'] || [];
 
@@ -2833,7 +2485,6 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
                     email: user.email,
                     pembimbing: selectedPA,
                     status: status,
-                    tahun_akademik: tahunAkademik,
                     mk_tidak_lulus: JSON.stringify(mkGagal || []),
                     mk_tempuh: JSON.stringify(mkBelum || []),
                 };
@@ -2916,17 +2567,6 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
                                         <option value="Drop Out">Drop Out</option>
                                     </select>
                                 </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tahun Akademik</label>
-                                    <input
-                                        type="text"
-                                        className="w-full rounded-2xl border-gray-200 bg-white/70 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                                        placeholder="2024/2025"
-                                        value={tahunAkademik}
-                                        onChange={e => setTahunAkademik(e.target.value)}
-                                    />
-                                </div>
                             </div>
 
                             <div className="space-y-4">
@@ -3006,288 +2646,6 @@ const ChatView = ({ context, config, onIncomingMessage }) => {
                         </div>
                     </div>
 
-                </div>
-            );
-        };
-
-// --- NEW VIEW: AKADEMIK MAHASISWA BIMBINGAN (DOSEN PA) ---
-        const AdvisorAcademicView = ({ db, user }) => {
-            const [filterTahun, setFilterTahun] = useState('');
-            const [filterSemester, setFilterSemester] = useState('');
-
-            const records = (db['Akademik Mahasiswa'] || []).filter(r => r.pembimbing === user.name);
-
-            const parseMkList = (raw) => {
-                if (!raw) return [];
-                try {
-                    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) {
-                    console.warn('Gagal parse data MK akademik (dosen):', e);
-                    return [];
-                }
-            };
-
-            const findMahasiswaByEmail = (email) => {
-                if (!email) return null;
-                const npm = String(email).split('@')[0];
-                const mhs = (db['Data Mahasiswa'] || []).find(m => String(m.NPM) === npm);
-                return mhs || { Nama: '-', NPM: npm };
-            };
-
-            const tahunOptions = Array.from(new Set(
-                (records || []).map(r => r && r.tahun_akademik).filter(Boolean).map(String)
-            )).sort();
-
-            const semesterOptions = Array.from(new Set(
-                records.flatMap(rec => parseMkList(rec.mk_tidak_lulus).map(mk => mk && mk.semester != null && mk.semester !== '' ? String(mk.semester) : null).filter(Boolean))
-            )).sort((a, b) => Number(a) - Number(b));
-
-            const filteredRecords = records.filter(rec => {
-                if (!rec) return false;
-                if (filterTahun && String(rec.tahun_akademik || '') !== filterTahun) return false;
-                return true;
-            });
-
-            const handleResetFilter = () => {
-                setFilterTahun('');
-                setFilterSemester('');
-            };
-
-            const handleExportExcel = () => {
-                if (!records.length) {
-                    alert('Belum ada data akademik mahasiswa bimbingan.');
-                    return;
-                }
-
-                const rows = [];
-                filteredRecords.forEach(rec => {
-                    const mhs = findMahasiswaByEmail(rec.email);
-                    const mkGagal = parseMkList(rec.mk_tidak_lulus);
-                    const semesterFilter = filterSemester ? String(filterSemester) : null;
-                    const list = semesterFilter ? mkGagal.filter(mk => String(mk.semester) === semesterFilter) : mkGagal;
-
-                    if (!list.length) return;
-
-                    list.forEach(mk => {
-                        rows.push({
-                            NPM: mhs.NPM || '',
-                            Nama: mhs.Nama || '',
-                            Tahun_Akademik: rec.tahun_akademik || '',
-                            Dosen_PA: rec.pembimbing || '',
-                            Status_Akademik: rec.status || '',
-                            Kode_MK: mk.kode || '',
-                            Nama_MK: mk.nama || '',
-                            Semester_MK: mk.semester || '',
-                            SKS: mk.sks || ''
-                        });
-                    });
-                });
-
-                if (!rows.length) {
-                    alert('Tidak ada MK Tidak Lulus yang sesuai dengan filter.');
-                    return;
-                }
-
-                try {
-                    const wb = XLSX.utils.book_new();
-                    const ws = XLSX.utils.json_to_sheet(rows);
-                    XLSX.utils.book_append_sheet(wb, ws, 'MK_Tidak_Lulus');
-                    XLSX.writeFile(wb, 'Data_MK_Tidak_Lulus_Bimbingan.xlsx');
-                } catch (e) {
-                    console.error('Gagal membuat file Excel:', e);
-                    alert('Terjadi kesalahan saat membuat file Excel.');
-                }
-            };
-
-            return (
-                <div className="max-w-5xl mx-auto space-y-6 pb-24 animate-fade-in">
-                    <div className="glass p-6 md:p-8 rounded-[2rem] shadow-xl border border-white/60">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2.5 bg-sky-100 text-sky-600 rounded-xl">
-                                        <Icon path={PATHS.AcademicCap} size={24} />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl md:text-2xl font-extrabold text-gray-800">Akademik Mahasiswa Bimbingan</h2>
-                                        <p className="text-xs md:text-sm text-gray-500">Ringkasan MK Tidak Lulus &amp; rencana MK tempuh mahasiswa dengan Dosen PA: <b>{user.name}</b>.</p>
-                                    </div>
-                                </div>
-                                <p className="text-[11px] md:text-xs text-gray-400 mt-1">Gunakan filter di samping untuk melihat berdasarkan Tahun Akademik dan Semester mata kuliah.</p>
-                            </div>
-                            <div className="space-y-2 w-full md:w-auto">
-                                <div className="flex flex-col md:flex-row gap-2">
-                                    <select
-                                        className="flex-1 min-w-[140px] rounded-2xl border-gray-200 bg-white/80 px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
-                                        value={filterTahun}
-                                        onChange={e => setFilterTahun(e.target.value)}
-                                    >
-                                        <option value="">Semua Tahun Akademik</option>
-                                        {tahunOptions.map((ta) => (
-                                            <option key={ta} value={ta}>{ta}</option>
-                                        ))}
-                                    </select>
-                                    <select
-                                        className="flex-1 min-w-[120px] rounded-2xl border-gray-200 bg-white/80 px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
-                                        value={filterSemester}
-                                        onChange={e => setFilterSemester(e.target.value)}
-                                    >
-                                        <option value="">Semua Semester MK</option>
-                                        {semesterOptions.map((smt) => (
-                                            <option key={smt} value={smt}>Semester {smt}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="flex flex-wrap gap-2 justify-end">
-                                    <button
-                                        type="button"
-                                        onClick={handleResetFilter}
-                                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-2xl text-[11px] font-semibold bg-white/70 border border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95 transition"
-                                    >
-                                        <Icon path={PATHS.Refresh} className="w-3.5 h-3.5" />
-                                        Reset Filter
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleExportExcel}
-                                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-2xl text-[11px] font-semibold bg-emerald-500 text-white shadow-sm hover:bg-emerald-600 active:scale-95 transition"
-                                    >
-                                        <Icon path={PATHS.Download} className="w-3.5 h-3.5" />
-                                        Export Excel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {filteredRecords.length === 0 ? (
-                        <div className="glass p-6 rounded-2xl border border-dashed border-sky-300 text-center text-sm text-gray-500">
-                            Belum ada data akademik yang diisi oleh mahasiswa bimbingan Anda.
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {filteredRecords.map((rec) => {
-                                const mhs = findMahasiswaByEmail(rec.email);
-                                const mkGagal = parseMkList(rec.mk_tidak_lulus);
-                                const mkBelum = parseMkList(rec.mk_tempuh);
-
-                                const mkGagalFiltered = filterSemester
-                                    ? mkGagal.filter(mk => String(mk.semester) === String(filterSemester))
-                                    : mkGagal;
-
-                                const mkBelumFiltered = filterSemester
-                                    ? mkBelum.filter(mk => String(mk.semester) === String(filterSemester))
-                                    : mkBelum;
-
-                                return (
-                                    <div
-                                        key={rec.id || rec.email}
-                                        className="glass p-5 md:p-6 rounded-2xl border border-white/60 shadow-sm"
-                                    >
-                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
-                                            <div>
-                                                <div className="text-[11px] text-gray-400 uppercase tracking-wide">
-                                                    Mahasiswa Bimbingan
-                                                </div>
-                                                <div className="text-base md:text-lg font-bold text-gray-800">
-                                                    {mhs.Nama} ({mhs.NPM})
-                                                </div>
-                                                <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-gray-500">
-                                                    <span>Status: <span className="font-semibold">{rec.status || '-'}</span></span>
-                                                    {rec.tahun_akademik && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
-                                                            <Icon path={PATHS.Calendar} className="w-3 h-3" />
-                                                            TA {rec.tahun_akademik}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="text-[11px] text-gray-400 mt-0.5">
-                                                    Email Sistem: {rec.email || '-'}
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col items-end gap-1">
-                                                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-700">
-                                                    Dosen PA: {rec.pembimbing || '-'}
-                                                </span>
-                                                <span className="text-[10px] text-gray-400">Total MK Tidak Lulus: {mkGagal.length}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid md:grid-cols-2 gap-4">
-                                            <div className="border-t border-white/40 pt-3">
-                                                <h3 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-1.5">
-                                                    <span className="w-1.5 h-4 rounded-full bg-red-400"></span>
-                                                    MK Tidak Lulus
-                                                </h3>
-                                                {mkGagalFiltered.length === 0 ? (
-                                                    <div className="text-[11px] text-gray-400 italic">
-                                                        Tidak ada MK Tidak Lulus untuk filter yang dipilih.
-                                                    </div>
-                                                ) : (
-                                                    <div className="overflow-x-auto">
-                                                        <table className="w-full text-[11px]">
-                                                            <thead className="bg-white/60 text-gray-600 uppercase tracking-wide">
-                                                                <tr>
-                                                                    <th className="px-2 py-1.5 text-left">Kode</th>
-                                                                    <th className="px-2 py-1.5 text-left">Mata Kuliah</th>
-                                                                    <th className="px-2 py-1.5 text-left">Smt</th>
-                                                                    <th className="px-2 py-1.5 text-left">SKS</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody className="divide-y divide-white/40">
-                                                                {mkGagalFiltered.map((mk, i) => (
-                                                                    <tr key={i} className="hover:bg-white/60">
-                                                                        <td className="px-2 py-1.5 font-mono">{mk.kode || '-'}</td>
-                                                                        <td className="px-2 py-1.5">{mk.nama || '-'}</td>
-                                                                        <td className="px-2 py-1.5">{mk.semester || '-'}</td>
-                                                                        <td className="px-2 py-1.5">{mk.sks || '-'}</td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="border-t border-white/40 pt-3">
-                                                <h3 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-1.5">
-                                                    <span className="w-1.5 h-4 rounded-full bg-emerald-400"></span>
-                                                    Rencana MK yang Akan Diambil
-                                                </h3>
-                                                {mkBelumFiltered.length === 0 ? (
-                                                    <div className="text-[11px] text-gray-400 italic">
-                                                        Belum ada rencana MK tempuh yang diinput.
-                                                    </div>
-                                                ) : (
-                                                    <div className="overflow-x-auto">
-                                                        <table className="w-full text-[11px]">
-                                                            <thead className="bg-white/60 text-gray-600 uppercase tracking-wide">
-                                                                <tr>
-                                                                    <th className="px-2 py-1.5 text-left">Kode</th>
-                                                                    <th className="px-2 py-1.5 text-left">Mata Kuliah</th>
-                                                                    <th className="px-2 py-1.5 text-left">Smt</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody className="divide-y divide-white/40">
-                                                                {mkBelumFiltered.map((mk, i) => (
-                                                                    <tr key={i} className="hover:bg-white/60">
-                                                                        <td className="px-2 py-1.5 font-mono">{mk.kode || '-'}</td>
-                                                                        <td className="px-2 py-1.5">{mk.nama || '-'}</td>
-                                                                        <td className="px-2 py-1.5">{mk.semester || '-'}</td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
                 </div>
             );
         };
@@ -3738,32 +3096,15 @@ const activeUserKey = useMemo(() => {
                         </div>
                         <nav className="flex-1 px-6 space-y-2 overflow-y-auto touch-scroll">
                             <button onClick={()=>{setPage('chat');setMenuOpen(false)}} className={`nav-btn ${page==='chat'?'active':''}`}><Icon path={PATHS.Sparkles}/> Chat AI</button>
-                            <button onClick={()=>{setPage('pengumuman');setMenuOpen(false)}} className={`nav-btn ${page==='pengumuman'?'active':''}`}><Icon path={PATHS.Bell}/> Pengumuman</button>
                             
                             {/* Menu Mahasiswa */}
                             {userRole === 'mhs' && (
                                 <>
-                                    <button onClick={()=>{setPage('akademik');setMenuOpen(false)}} className={`nav-btn ${page==='akademik'?'active':''}`}>
-                                        <Icon path={PATHS.AcademicCap}/> Akademik
-                                    </button>
-                                    <button onClick={()=>{setPage('surat');setMenuOpen(false)}} className={`nav-btn ${page==='surat'?'active':''}`}>
-                                        <Icon path={PATHS.Mail}/> Pesan Surat
-                                    </button>
-                                    <button onClick={()=>{setPage('tracking-dosen');setMenuOpen(false)}} className={`nav-btn ${page==='tracking-dosen'?'active':''}`}>
-                                        <Icon path={PATHS.Users}/> Tracking Dosen
-                                    </button>
-                                    <button onClick={()=>{setPage('alat-laboratorium');setMenuOpen(false)}} className={`nav-btn ${page==='alat-laboratorium'?'active':''}`}>
-                                        <Icon path={PATHS.Briefcase}/> Alat Laboratorium
-                                    </button>
-                                    <button onClick={()=>{setPage('peminatan');setMenuOpen(false)}} className={`nav-btn ${page==='peminatan'?'active':''}`}>
-                                        <Icon path={PATHS.Check}/> Pilih Peminatan
-                                    </button>
+                                    <button onClick={()=>{setPage('akademik');setMenuOpen(false)}} className={`nav-btn ${page==='akademik'?'active':''}`}><Icon path={PATHS.AcademicCap}/> Akademik</button>
+                                    <button onClick={()=>{setPage('surat');setMenuOpen(false)}} className={`nav-btn ${page==='surat'?'active':''}`}><Icon path={PATHS.Mail}/> Pesan Surat</button>
+                                    <button onClick={()=>{setPage('alat-laboratorium');setMenuOpen(false)}} className={`nav-btn ${page==='alat-laboratorium'?'active':''}`}><Icon path={PATHS.Briefcase}/> Alat Laboratorium</button>
+                                    <button onClick={()=>{setPage('peminatan');setMenuOpen(false)}} className={`nav-btn ${page==='peminatan'?'active':''}`}><Icon path={PATHS.Check}/> Pilih Peminatan</button>
                                 </>
-                            )}
-
-                            {/* Menu untuk Dosen */}
-                            {userRole === 'dosen' && (
-                                <button onClick={()=>{setPage('akademik-pa');setMenuOpen(false)}} className={`nav-btn ${page==='akademik-pa'?'active':''}`}><Icon path={PATHS.AcademicCap}/> Akademik Mhs Bimbingan</button>
                             )}
 
                             {/* Menu Dosen, Mahasiswa, Tendik */}
@@ -3771,6 +3112,7 @@ const activeUserKey = useMemo(() => {
                             <button onClick={()=>{setPage('alat-laboratorium');setMenuOpen(false)}} className={`nav-btn ${page==='alat-laboratorium'?'active':''}`}><Icon path={PATHS.Briefcase}/> Alat Laboratorium</button>
                             
                             {/* Menu Umum */}
+                            <button onClick={()=>{setPage('pengumuman');setMenuOpen(false)}} className={`nav-btn ${page==='pengumuman'?'active':''}`}><Icon path={PATHS.Bell}/> Pengumuman</button>
                             <button onClick={()=>{setPage('akreditasi');setMenuOpen(false)}} className={`nav-btn ${page==='akreditasi'?'active':''}`}><Icon path={PATHS.Award}/> Akreditasi</button>
 
                             {/* MENU BARU PBL & PKM (SEMUA USER) */}
@@ -3798,13 +3140,6 @@ const activeUserKey = useMemo(() => {
                                 <button onClick={()=>{setPage('generator-surat');setMenuOpen(false)}} className={`nav-btn ${page==='generator-surat'?'active':''}`}><Icon path={PATHS.Calculator}/> Generator No Surat</button>
                                 <button onClick={()=>{setPage('peminatan');setMenuOpen(false)}} className={`nav-btn ${page==='peminatan'?'active':''}`}><Icon path={PATHS.Check}/> Setting Peminatan</button>
                                 <button onClick={()=>{setPage('dashboard');setMenuOpen(false)}} className={`nav-btn ${page==='dashboard'?'active':''}`}><Icon path={PATHS.Home}/> Dashboard</button>
-{/* Tracking Dosen (Admin, Dosen & Mahasiswa) */}
-{(userRole === 'tendik' || userRole === 'superadmin' || userRole === 'dosen' || userRole === 'mhs') && (
-    <button onClick={()=>{setPage('tracking-dosen');setMenuOpen(false)}} className={`nav-btn ${page==='tracking-dosen'?'active':''}`}>
-        <Icon path={PATHS.Users}/> Tracking Dosen
-    </button>
-)}
-
                             </>}
 
                             {/* Menu Khusus SuperAdmin (Login via Logo) */}
@@ -3844,7 +3179,6 @@ const activeUserKey = useMemo(() => {
                                          page === 'konsultasi' ? 'KONSULTASI ONLINE' :
                                          page === 'surat' ? 'LAYANAN SURAT' :
                                          page === 'akademik' ? 'KARTU RENCANA STUDI' :
-                                         page === 'akademik-pa' ? 'AKADEMIK MAHASISWA BIMBINGAN' :
                                          page === 'pengumuman' ? 'PENGUMUMAN' :
                                          page === 'pbl1' ? 'PRAKTIKUM BELAJAR LAPANGAN 1' :
                                          page === 'pbl2' ? 'PRAKTIKUM BELAJAR LAPANGAN 2' :
@@ -3855,7 +3189,6 @@ const activeUserKey = useMemo(() => {
                                          page === 'arsip-surat' ? 'ARSIP SURAT' :
                                          page === 'akreditasi' ? 'ARSIP AKREDITASI' :
                                          page === 'generator-surat' ? 'GENERATOR NOMOR SURAT' :
-                                         page === 'tracking-dosen' ? 'TRACKING DOSEN' :
                                          page === 'alat-laboratorium' ? 'ALAT LABORATORIUM' :
                                          page.toUpperCase()}
                                     </h1>
@@ -3915,7 +3248,6 @@ const activeUserKey = useMemo(() => {
                                 )}
                                 {page==='konsultasi' && <ConsultationView db={db} user={user} onUpdateDb={handleUpdateDb} />}
                                 {page==='akademik' && <StudentAcademicView db={db} user={user} onUpdateDb={handleUpdateDb} />}
-                                {page==='akademik-pa' && userRole === 'dosen' && <AdvisorAcademicView db={db} user={user} />}
                                 {page==='surat' && <LetterView db={db} userRole={userRole} />}
 
                                 
@@ -3974,43 +3306,7 @@ const activeUserKey = useMemo(() => {
                                 
                                 {page==='generator-surat' && <LetterGeneratorView db={db} onAdd={add} />}
 
-                                {page==='tracking-dosen' && (
-    userRole === 'mhs' ? (
-        <div className="space-y-6">
-            <GenericTable
-                title="Tracking Dosen"
-                data={db['Tracking Dosen'] || []}
-                columns={TABLE_CONFIG['Tracking Dosen'].columns}
-                formConfig={TABLE_CONFIG['Tracking Dosen'].form}
-                isLocked={true}
-            />
-        </div>
-    ) : (
-        <div className="space-y-6">
-            <DosenTracking
-                data={db['Tracking Dosen'] || []}
-                daftarDosen={db['Data Dosen'] || []}
-                onAddManual={(payload)=>add('Tracking Dosen', payload)}
-                onAddAuto={(payload)=>add('Tracking Dosen', payload)}
-            />
-            <div className="mt-6">
-                <GenericTable
-                    title="Tracking Dosen"
-                    data={db['Tracking Dosen'] || []}
-                    columns={TABLE_CONFIG['Tracking Dosen'].columns}
-                    formConfig={TABLE_CONFIG['Tracking Dosen'].form}
-                    onAdd={(payload)=>add('Tracking Dosen', payload)}
-                    onDel={(id)=>del('Tracking Dosen', id)}
-                    onClear={()=>clear('Tracking Dosen')}
-                    onImp={(rows)=>imp('Tracking Dosen', rows)}
-                    isLocked={false}
-                />
-            </div>
-        </div>
-    )
-)}
-
-{page==='dashboard' && <DashboardView db={db} isOnline={isOnline} onRefresh={refresh} isLoading={isLoading} />}
+                                {page==='dashboard' && <DashboardView db={db} isOnline={isOnline} onRefresh={refresh} isLoading={isLoading} />}
                                 {page==='settings' && <SettingsView config={config} setConfig={setConfig} db={db} />}
                                 {page==='data' && (
                                     <div className="space-y-10">
